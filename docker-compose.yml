@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: primevault-db
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: primevault
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: primevault-api
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - DATABASE_URL=mysql://root:password@mysql:3306/primevault
+      - JWT_ACCESS_SECRET=pt-access-super-secret-key-production
+      - JWT_REFRESH_SECRET=pt-refresh-super-secret-key-production
+      - JWT_ACCESS_EXPIRY=15m
+      - JWT_REFRESH_EXPIRY=7d
+      - CLIENT_URL=http://localhost:5173
+    ports:
+      - '5000:5000'
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Frontend (React + Vite)
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: primevault-client
+    ports:
+      - '5173:80'
+    depends_on:
+      - server
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
