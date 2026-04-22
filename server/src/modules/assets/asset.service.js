@@ -25,7 +25,7 @@ class AssetService {
   /**
    * Get all assets with pagination, search, filter, sort
    */
-  async getAllCrypto Assets({ page = 1, limit = 10, search = '', category = '', sortBy = 'createdAt', order = 'desc', isActive = '' }) {
+  async getAllCryptoAssets({ page = 1, limit = 10, search = '', category = '', sortBy = 'createdAt', order = 'desc', isActive = '' }) {
     const skip = (page - 1) * limit;
 
     // Build where clause

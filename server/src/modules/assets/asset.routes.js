@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import {
   createAsset,
-  getAllCrypto Assets,
+  getAllCryptoAssets,
   getAssetById,
   updateAsset,
   deleteAsset,
@@ -111,7 +111,7 @@ router.get('/categories', getCategories);
  *                     pagination:
  *                       $ref: '#/components/schemas/Pagination'
  */
-router.get('/', validate({ query: assetQuerySchema }), getAllCrypto Assets);
+router.get('/', validate({ query: assetQuerySchema }), getAllCryptoAssets);
 
 /**
  * @openapi

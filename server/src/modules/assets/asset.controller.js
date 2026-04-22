@@ -17,9 +17,9 @@ export const createAsset = asyncHandler(async (req, res) => {
  * @route   GET /api/v1/assets
  * @access  Private (Auth)
  */
-export const getAllCrypto Assets = asyncHandler(async (req, res) => {
+export const getAllCryptoAssets = asyncHandler(async (req, res) => {
   const { page, limit, search, category, sortBy, order, isActive } = req.query;
-  const result = await assetService.getAllCrypto Assets({
+  const result = await assetService.getAllCryptoAssets({
     page: parseInt(page) || 1,
     limit: parseInt(limit) || 10,
     search,
