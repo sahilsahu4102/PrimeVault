@@ -1,0 +1,49 @@
+// Prisma Schema for PrimeVault API
+// Defines User and Asset models with Role-Based Access Control
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  name         String
+  password     String
+  role         Role      @default(USER)
+  refreshToken String?   @db.Text
+  assets       Asset[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Asset {
+  id          String   @id @default(uuid())
+  name        String
+  description String?  @db.Text
+  volume      Float    @map("price") // Mapped internally matching old price behavior
+  category    String   // Layer 1, DeFi, NFT, etc.
+  stock       Int      @default(0)   // Total available or held amount
+  isActive    Boolean  @default(true)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([userId])
+  @@index([name])
+  @@map("assets")
+}
