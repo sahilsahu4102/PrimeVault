@@ -19,7 +19,15 @@ const app = express();
 // ─── Security Middleware ───────────────────────────────────────
 app.use(helmet());
 app.use(cors({
-  origin: env.CLIENT_URL,
+  origin: function (origin, callback) {
+    const allowedOrigins = env.CLIENT_URL.split(',').map(o => o.trim());
+    // Allow requests with no origin (mobile apps, Postman, curl)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
