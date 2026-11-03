@@ -34,7 +34,7 @@
 
 **PrimeVault** is a full-stack web application designed for managing crypto asset portfolios. It features a secure REST API backend with dual-token JWT authentication, granular role-based access control, and a modern React frontend with glassmorphism design aesthetics — purpose-built for the Web3 ecosystem.
 
-> **Built as a Backend Developer Internship assignment for [PrimeVault.ai](https://primetrade.ai) — redefining trading intelligence in the Web3 space.**
+> **Built as a Backend Developer Internship assignment for [Primetrade.ai](https://primetrade.ai) — redefining trading intelligence in the Web3 space.**
 
 ---
 
@@ -366,5 +366,5 @@ Backend Developer Intern Candidate
 ---
 
 <p align="center">
-  <sub>Built with ❤️ for PrimeVault.ai — redefining trading intelligence in the Web3 space</sub>
+  <sub>Built with ❤️ for Primetrade.ai — redefining trading intelligence in the Web3 space</sub>
 </p>
