@@ -10,6 +10,11 @@ const env = {
   JWT_ACCESS_EXPIRY: process.env.JWT_ACCESS_EXPIRY || '15m',
   JWT_REFRESH_EXPIRY: process.env.JWT_REFRESH_EXPIRY || '7d',
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173',
+  // Requests per IP per 15 minutes. The defaults are the production limits; tests raise them.
+  RATE_LIMIT_MAX: Number(process.env.RATE_LIMIT_MAX) || 100,
+  AUTH_RATE_LIMIT_MAX: Number(process.env.AUTH_RATE_LIMIT_MAX) || 20,
+  // Public registration can never create an ADMIN unless this is "true" (demo deployments only).
+  ALLOW_ADMIN_SIGNUP: process.env.ALLOW_ADMIN_SIGNUP === 'true',
 };
 
 // Validate required env vars at startup

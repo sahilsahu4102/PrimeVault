@@ -150,6 +150,8 @@ After seeding, use these accounts to test:
 | **User** | _(any seeded user)_ | `User1234` |
 
 > Admin has full access to user management + all asset operations. Regular users can only manage their own assets.
+>
+> Public registration always creates a `USER`: asking for `ADMIN` answers 403 (an admin can promote someone with `PATCH /users/:id/role`). A throwaway demo deployment can switch the old behaviour on with `ALLOW_ADMIN_SIGNUP=true`.
 
 ---
 
@@ -187,7 +189,7 @@ After seeding, use these accounts to test:
 ?page=1&limit=10           → Pagination
 ?search=ethereum            → Full-text search (name + description)
 ?category=DeFi              → Filter by category
-?sortBy=volume&order=desc   → Sort by any field
+?sortBy=price&order=desc    → Sort (name, price, createdAt, stock, category)
 ?isActive=true              → Filter active/inactive assets
 ```
 
@@ -271,7 +273,7 @@ PrimeVault/
 | **Token Theft** | 15-min access tokens + automatic refresh rotation |
 | **Clickjacking** | Helmet → `X-Frame-Options: DENY` |
 | **MIME Sniffing** | Helmet → `X-Content-Type-Options: nosniff` |
-| **Info Leakage** | Global error handler sanitizes stack traces in production |
+| **Info Leakage** | Global error handler hides stack traces and the text of unexpected errors outside development (tested) |
 
 ---
 
@@ -344,7 +346,31 @@ See [`SCALABILITY.md`](./SCALABILITY.md) for detailed strategies on:
 
 ---
 
-## 🧪 Testing the API
+## 🧪 Automated Tests
+
+```bash
+cd server
+docker run -d --name pv-test-mysql -e MYSQL_ROOT_PASSWORD=pw -e MYSQL_DATABASE=primevault_test -p 3307:3306 mysql:8.4
+DATABASE_URL=mysql://root:pw@127.0.0.1:3307/primevault_test npx prisma db push   # PowerShell: $env:DATABASE_URL = "..."
+npm test        # 44 tests, about 15 seconds
+```
+
+The suite uses Node's built-in test runner (no extra dependencies) and talks to the real API over HTTP. It **never reads `DATABASE_URL` from `.env`**: it uses `TEST_DATABASE_URL`, or the Docker database above, and refuses to start on any database whose name does not contain "test". Every user a test creates is deleted afterwards.
+
+| File | Tests | What it covers |
+|------|------:|----------------|
+| `tests/unit.test.js` | 15 | Joi rules (password strength, trimming, lower-cased email), mass-assignment stripping, the asset and query schemas, the role guard, access-token checks (missing, malformed, forged, expired, unsigned `alg: none`), and the error handler (duplicate and missing rows, no message or stack leaked on a 500) |
+| `tests/api.test.js` | 25 | Register, login (same 401 for a wrong password and an unknown email), `/me`, deleted-user tokens, refresh-token rotation (the old token stops working), logout; `USER` versus `ADMIN` on the user routes; asset create, read, update, delete with owner-or-admin permission; pagination, search, category filter, sorting; health, 404, security headers, CORS, body-size limit, Swagger |
+| `tests/rate-limit.test.js` | 2 | The 21st sign-in attempt and the 101st request in 15 minutes get 429, with the rate-limit headers |
+| `tests/deployment.test.js`, `tests/admin-signup.test.js` | 2 | The refresh cookie is `Secure` in production; admin sign-up works only when `ALLOW_ADMIN_SIGNUP=true` |
+
+Writing these found four real bugs, all fixed: public registration could create an `ADMIN` (it now answers 403 unless the deployment sets `ALLOW_ADMIN_SIGNUP=true`, and the register form no longer offers a role); the refresh cookie's `Secure` flag was compared with the string `'assetion'` (a find-and-replace accident), so it was never set in production; asset create, update and sort used `price` where the Prisma field is `volume`; and the error handler returned the raw message of unexpected errors to the client. Against the code before the fixes, 10 of the 44 tests fail. GitHub Actions runs everything on each push against a MySQL service container, and also builds the React client.
+
+**Not tested:** the React client has no tests (CI only builds it), there is no load test, and the refresh cookie is `SameSite=Strict`, which a browser will not send when the client and the API are on different sites, so silent refresh across a Vercel-style client and a separate API host has not been verified.
+
+---
+
+## 🧪 Testing the API by Hand
 
 ### Using Swagger UI
 1. Navigate to `http://localhost:5000/api-docs`

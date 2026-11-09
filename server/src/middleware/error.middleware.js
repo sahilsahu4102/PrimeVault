@@ -36,10 +36,10 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
-  // Response
+  // Response. The reason for an unexpected failure (a database error, say) goes to the log, not to the client.
   const response = {
     success: false,
-    message,
+    message: statusCode >= 500 && env.NODE_ENV !== 'development' ? 'Internal Server Error' : message,
   };
 
   if (errors.length > 0) {

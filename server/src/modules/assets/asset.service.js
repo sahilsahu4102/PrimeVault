@@ -4,13 +4,18 @@ import logger from '../../config/logger.js';
 
 const prisma = new PrismaClient();
 
+// The Prisma field is `volume` (stored in the `price` column) but the API, its validation and the
+// client all say `price`. These two convert at the edge so the rest of the API never sees `volume`.
+const toApi = ({ volume, ...asset }) => ({ ...asset, price: volume });
+const toDb = ({ price, ...rest }) => (price === undefined ? rest : { ...rest, volume: price });
+
 class AssetService {
   /**
    * Create a new asset
    */
   async createAsset(data, userId) {
     const asset = await prisma.asset.create({
-      data: { ...data, userId },
+      data: { ...toDb(data), userId },
       include: {
         user: {
           select: { id: true, name: true, email: true },
@@ -19,7 +24,7 @@ class AssetService {
     });
 
     logger.info(`Asset created: ${asset.name} by user ${userId}`);
-    return asset;
+    return toApi(asset);
   }
 
   /**
@@ -47,7 +52,7 @@ class AssetService {
     }
 
     // Build orderBy
-    const orderBy = { [sortBy]: order };
+    const orderBy = { [sortBy === 'price' ? 'volume' : sortBy]: order };
 
     const [assets, total] = await Promise.all([
       prisma.asset.findMany({
@@ -65,7 +70,7 @@ class AssetService {
     ]);
 
     return {
-      assets,
+      assets: assets.map(toApi),
       pagination: {
         page,
         limit,
@@ -92,7 +97,7 @@ class AssetService {
       throw ApiError.notFound('Asset not found');
     }
 
-    return asset;
+    return toApi(asset);
   }
 
   /**
@@ -112,7 +117,7 @@ class AssetService {
 
     const updatedAsset = await prisma.asset.update({
       where: { id },
-      data,
+      data: toDb(data),
       include: {
         user: {
           select: { id: true, name: true, email: true },
@@ -121,7 +126,7 @@ class AssetService {
     });
 
     logger.info(`Asset updated: ${updatedAsset.name} by user ${userId}`);
-    return updatedAsset;
+    return toApi(updatedAsset);
   }
 
   /**

@@ -10,8 +10,7 @@ const RegisterPage = () => {
     name: '',
     email: '',
     password: '',
-    role: 'USER',
-  });
+  }); // no role: the server makes every public sign-up a USER; admins come from the seed script
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -137,21 +136,6 @@ const RegisterPage = () => {
                 style={{ paddingLeft: 40 }}
               />
             </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label" htmlFor="reg-role">Account Role</label>
-            <select
-              id="reg-role"
-              name="role"
-              className="form-input"
-              value={form.role}
-              onChange={handleChange}
-              disabled={loading}
-            >
-              <option value="USER">User</option>
-              <option value="ADMIN">Admin</option>
-            </select>
           </div>
 
           <motion.button

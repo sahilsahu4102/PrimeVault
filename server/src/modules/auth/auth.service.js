@@ -13,6 +13,12 @@ class AuthService {
    * Register a new user
    */
   async register({ name, email, password, role }) {
+    // Anyone can reach this endpoint, so it must not hand out admin rights. Admins come from the seed
+    // script or from an existing admin; a demo deployment can opt in with ALLOW_ADMIN_SIGNUP=true.
+    if (role === 'ADMIN' && !env.ALLOW_ADMIN_SIGNUP) {
+      throw ApiError.forbidden('Admin accounts cannot be created through public registration');
+    }
+
     // Check if email already exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
