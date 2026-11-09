@@ -151,6 +151,8 @@ After seeding, use these accounts to test:
 
 > Admin has full access to user management + all asset operations. Regular users can only manage their own assets.
 >
+> If the seeded admin login does not work on your deployment (for example the database was seeded with another password), run `npm run db:admin` in `server/` with `ADMIN_PASSWORD` set; it creates the admin or resets its password and role, and prints which database it is acting on first. Choose a password of your own: the admin can delete every user and asset.
+>
 > Public registration always creates a `USER`: asking for `ADMIN` answers 403 (an admin can promote someone with `PATCH /users/:id/role`). A throwaway demo deployment can switch the old behaviour on with `ALLOW_ADMIN_SIGNUP=true`.
 
 ---
@@ -267,7 +269,7 @@ PrimeVault/
 |---------------|-----------|
 | **SQL Injection** | Prisma ORM parameterizes all queries automatically |
 | **XSS** | Access tokens in memory (never in DOM-accessible storage) |
-| **CSRF** | `SameSite=Strict` + `httpOnly` cookies, CORS origin lock |
+| **CSRF** | The only cookie is the `httpOnly` refresh token (`SameSite=Strict` locally; `SameSite=None; Secure` in production so a client on another site can use it). CORS rejects any request from an origin not in `CLIENT_URL` before it reaches a handler, and every other endpoint authenticates with the `Authorization` header, not a cookie (tested) |
 | **Brute Force** | Rate limiting — 100 req/15min global, stricter on auth |
 | **Mass Assignment** | Joi `stripUnknown` removes unexpected payload fields |
 | **Token Theft** | 15-min access tokens + automatic refresh rotation |
@@ -352,7 +354,7 @@ See [`SCALABILITY.md`](./SCALABILITY.md) for detailed strategies on:
 cd server
 docker run -d --name pv-test-mysql -e MYSQL_ROOT_PASSWORD=pw -e MYSQL_DATABASE=primevault_test -p 3307:3306 mysql:8.4
 DATABASE_URL=mysql://root:pw@127.0.0.1:3307/primevault_test npx prisma db push   # PowerShell: $env:DATABASE_URL = "..."
-npm test        # 44 tests, about 15 seconds
+npm test        # 47 tests, about 15 seconds
 ```
 
 The suite uses Node's built-in test runner (no extra dependencies) and talks to the real API over HTTP. It **never reads `DATABASE_URL` from `.env`**: it uses `TEST_DATABASE_URL`, or the Docker database above, and refuses to start on any database whose name does not contain "test". Every user a test creates is deleted afterwards.
@@ -360,13 +362,14 @@ The suite uses Node's built-in test runner (no extra dependencies) and talks to 
 | File | Tests | What it covers |
 |------|------:|----------------|
 | `tests/unit.test.js` | 15 | Joi rules (password strength, trimming, lower-cased email), mass-assignment stripping, the asset and query schemas, the role guard, access-token checks (missing, malformed, forged, expired, unsigned `alg: none`), and the error handler (duplicate and missing rows, no message or stack leaked on a 500) |
-| `tests/api.test.js` | 25 | Register, login (same 401 for a wrong password and an unknown email), `/me`, deleted-user tokens, refresh-token rotation (the old token stops working), logout; `USER` versus `ADMIN` on the user routes; asset create, read, update, delete with owner-or-admin permission; pagination, search, category filter, sorting; health, 404, security headers, CORS, body-size limit, Swagger |
+| `tests/api.test.js` | 26 | Register, login (same 401 for a wrong password and an unknown email), `/me`, deleted-user tokens, refresh-token rotation (the old token stops working, and a refresh from an unlisted origin is refused), logout; `USER` versus `ADMIN` on the user routes; asset create, read, update, delete with owner-or-admin permission; pagination, search, category filter, sorting; health, 404, security headers, CORS, body-size limit, Swagger |
 | `tests/rate-limit.test.js` | 2 | The 21st sign-in attempt and the 101st request in 15 minutes get 429, with the rate-limit headers |
-| `tests/deployment.test.js`, `tests/admin-signup.test.js` | 2 | The refresh cookie is `Secure` in production; admin sign-up works only when `ALLOW_ADMIN_SIGNUP=true` |
+| `tests/deployment.test.js`, `tests/admin-signup.test.js` | 2 | In production the refresh cookie is `Secure` and `SameSite=None` (and logout clears it with the same attributes); admin sign-up works only when `ALLOW_ADMIN_SIGNUP=true` |
+| `tests/ensure-admin.test.js` | 2 | `npm run db:admin` creates the demo admin, and rerunning repairs a changed password and a demoted role |
 
-Writing these found four real bugs, all fixed: public registration could create an `ADMIN` (it now answers 403 unless the deployment sets `ALLOW_ADMIN_SIGNUP=true`, and the register form no longer offers a role); the refresh cookie's `Secure` flag was compared with the string `'assetion'` (a find-and-replace accident), so it was never set in production; asset create, update and sort used `price` where the Prisma field is `volume`; and the error handler returned the raw message of unexpected errors to the client. Against the code before the fixes, 10 of the 44 tests fail. GitHub Actions runs everything on each push against a MySQL service container, and also builds the React client.
+Writing these found five real bugs, all fixed: public registration could create an `ADMIN` (it now answers 403 unless the deployment sets `ALLOW_ADMIN_SIGNUP=true`, and the register form no longer offers a role); the refresh cookie's `Secure` flag was compared with the string `'assetion'` (a find-and-replace accident), so it was never set in production; asset create, update and sort used `price` where the Prisma field is `volume`; the error handler returned the raw message of unexpected errors to the client; and the refresh cookie was `SameSite=Strict`, which browsers never send across sites, so a client on another host than the API would lose its session after 15 minutes. Against the code before the fixes, 10 of the 44 tests fail. GitHub Actions runs everything on each push against a MySQL service container, and also builds the React client.
 
-**Not tested:** the React client has no tests (CI only builds it), there is no load test, and the refresh cookie is `SameSite=Strict`, which a browser will not send when the client and the API are on different sites, so silent refresh across a Vercel-style client and a separate API host has not been verified.
+**Not tested:** the React client has no tests (CI only builds it), there is no load test, and the cross-site cookie is checked by its response headers, not in a real browser session between two hosts. In production set `NODE_ENV=production`, which switches on the `Secure` and `SameSite=None` cookie, hides error details, and is required for the fix above.
 
 ---
 

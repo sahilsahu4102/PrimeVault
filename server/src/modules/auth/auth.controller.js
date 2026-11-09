@@ -44,6 +44,9 @@ export const login = asyncHandler(async (req, res) => {
  * @access  Public
  */
 export const refresh = asyncHandler(async (req, res) => {
+  // The cookie is sent across sites in production (see cookieOptions). A page on another site cannot use
+  // that to refresh a session: the CORS middleware in app.js rejects any request whose Origin is not in
+  // CLIENT_URL before it reaches this handler (tested in tests/api.test.js).
   const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
   const result = await authService.refreshToken(refreshToken);
 
@@ -65,11 +68,7 @@ export const logout = asyncHandler(async (req, res) => {
   await authService.logout(req.user.id);
 
   // Clear refresh token cookie
-  res.clearCookie('refreshToken', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-  });
+  res.clearCookie('refreshToken', cookieOptions());
 
   ApiResponse.ok(res, 'Logged out successfully');
 });
@@ -85,13 +84,23 @@ export const getMe = asyncHandler(async (req, res) => {
 });
 
 /**
+ * The refresh cookie's attributes. In production the client and the API are on different sites (for
+ * example a Vercel page calling onrender.com), and browsers never send a SameSite=Strict cookie across
+ * sites, so silent refresh would fail and users would be signed out after 15 minutes. SameSite=None
+ * fixes that and requires Secure, which production (HTTPS) has. Locally the client and the API are both
+ * on localhost, which is one site, so Strict is fine and is kept.
+ */
+function cookieOptions() {
+  const production = process.env.NODE_ENV === 'production';
+  return { httpOnly: true, secure: production, sameSite: production ? 'none' : 'strict' };
+}
+
+/**
  * Helper: Set refresh token as httpOnly cookie
  */
 function setRefreshTokenCookie(res, refreshToken) {
   res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    ...cookieOptions(),
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 }

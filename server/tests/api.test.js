@@ -149,6 +149,15 @@ it('refresh refuses a missing, garbage or wrongly signed token', async () => {
   assert.equal(await bad(`refreshToken=${wrongSecret}`), 401);
 });
 
+it('a page on another site cannot refresh a session: an unlisted Origin is refused before it reaches the handler', async () => {
+  const cookie = cookiePair((await login('alice')).cookies[0]);
+  const evil = await api('/auth/refresh', { method: 'POST', cookie, headers: { Origin: 'http://evil.example' } });
+  assert.ok(evil.status >= 400);
+  assert.equal(evil.cookies.length, 0); // no new cookie, so nothing was rotated
+  const good = await api('/auth/refresh', { method: 'POST', cookie, headers: { Origin: 'http://localhost:5173' } });
+  assert.equal(good.status, 200); // the same cookie still works from the real client
+});
+
 it('logout kills the refresh token and clears the cookie; it needs a login', async () => {
   const r = await login('bob');
   const cookie = cookiePair(r.cookies[0]);
