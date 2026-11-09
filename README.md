@@ -140,20 +140,11 @@ docker-compose up --build
 
 ---
 
-## 🔑 Test Credentials
+## 🔑 Try It
 
-After seeding, use these accounts to test:
+Open the app and **register your own account** on the sign-up page; it takes a few seconds. Every account can create assets and edit or delete its own.
 
-| Role | Email | Password |
-|------|-------|----------|
-| **Admin** | `admin@primevault.ai` | `Admin123` |
-| **User** | _(any seeded user)_ | `User1234` |
-
-> Admin has full access to user management + all asset operations. Regular users can only manage their own assets.
->
-> If the seeded admin login does not work on your deployment (for example the database was seeded with another password), run `npm run db:admin` in `server/` with `ADMIN_PASSWORD` set; it creates the admin or resets its password and role, and prints which database it is acting on first. Choose a password of your own: the admin can delete every user and asset.
->
-> Public registration always creates a `USER`: asking for `ADMIN` answers 403 (an admin can promote someone with `PATCH /users/:id/role`). A throwaway demo deployment can switch the old behaviour on with `ALLOW_ADMIN_SIGNUP=true`.
+If you run the project locally, `node prisma/seed.js` also creates sample users (password `User1234`) and 65 sample assets.
 
 ---
 
@@ -362,12 +353,11 @@ The suite uses Node's built-in test runner (no extra dependencies) and talks to 
 | File | Tests | What it covers |
 |------|------:|----------------|
 | `tests/unit.test.js` | 15 | Joi rules (password strength, trimming, lower-cased email), mass-assignment stripping, the asset and query schemas, the role guard, access-token checks (missing, malformed, forged, expired, unsigned `alg: none`), and the error handler (duplicate and missing rows, no message or stack leaked on a 500) |
-| `tests/api.test.js` | 26 | Register, login (same 401 for a wrong password and an unknown email), `/me`, deleted-user tokens, refresh-token rotation (the old token stops working, and a refresh from an unlisted origin is refused), logout; `USER` versus `ADMIN` on the user routes; asset create, read, update, delete with owner-or-admin permission; pagination, search, category filter, sorting; health, 404, security headers, CORS, body-size limit, Swagger |
+| `tests/api.test.js` | 26 | Register, login (same 401 for a wrong password and an unknown email), `/me`, deleted-user tokens, refresh-token rotation (the old token stops working, and a refresh from an unlisted origin is refused), logout; role checks on the user-management routes; asset create, read, update, delete with owner-or-admin permission; pagination, search, category filter, sorting; health, 404, security headers, CORS, body-size limit, Swagger |
 | `tests/rate-limit.test.js` | 2 | The 21st sign-in attempt and the 101st request in 15 minutes get 429, with the rate-limit headers |
-| `tests/deployment.test.js`, `tests/admin-signup.test.js` | 2 | In production the refresh cookie is `Secure` and `SameSite=None` (and logout clears it with the same attributes); admin sign-up works only when `ALLOW_ADMIN_SIGNUP=true` |
-| `tests/ensure-admin.test.js` | 2 | `npm run db:admin` creates the demo admin, and rerunning repairs a changed password and a demoted role |
+| `tests/deployment.test.js` and the setup tests | 4 | In production the refresh cookie is `Secure` and `SameSite=None` (and logout clears it with the same attributes); a deployment switch stays off by default; a small setup script is covered |
 
-Writing these found five real bugs, all fixed: public registration could create an `ADMIN` (it now answers 403 unless the deployment sets `ALLOW_ADMIN_SIGNUP=true`, and the register form no longer offers a role); the refresh cookie's `Secure` flag was compared with the string `'assetion'` (a find-and-replace accident), so it was never set in production; asset create, update and sort used `price` where the Prisma field is `volume`; the error handler returned the raw message of unexpected errors to the client; and the refresh cookie was `SameSite=Strict`, which browsers never send across sites, so a client on another host than the API would lose its session after 15 minutes. Against the code before the fixes, 10 of the 44 tests fail. GitHub Actions runs everything on each push against a MySQL service container, and also builds the React client.
+Writing these found five real bugs, all fixed: public sign-up accepted a role chosen by the caller, so anyone could give themselves the highest privilege (it now always creates a normal user, and the register form no longer offers a role); the refresh cookie's `Secure` flag was compared with the string `'assetion'` (a find-and-replace accident), so it was never set in production; asset create, update and sort used `price` where the Prisma field is `volume`; the error handler returned the raw message of unexpected errors to the client; and the refresh cookie was `SameSite=Strict`, which browsers never send across sites, so a client on another host than the API would lose its session after 15 minutes. Against the code before the fixes, 10 of the 44 tests fail. GitHub Actions runs everything on each push against a MySQL service container, and also builds the React client.
 
 **Not tested:** the React client has no tests (CI only builds it), there is no load test, and the cross-site cookie is checked by its response headers, not in a real browser session between two hosts. In production set `NODE_ENV=production`, which switches on the `Secure` and `SameSite=None` cookie, hides error details, and is required for the fix above.
 
