@@ -192,6 +192,20 @@ it('an admin can read a user and change a role; bad roles, unknown users and non
   assert.equal(ok.body.data.user.role, 'ADMIN');
 });
 
+it('an admin cannot change their own role or delete their own account, so they cannot lock themselves out', async () => {
+  const self = (await register('selfadmin')).body.data;
+  await prisma.user.update({ where: { id: self.user.id }, data: { role: 'ADMIN' } });
+  const demote = await api(`/users/${self.user.id}/role`, { method: 'PATCH', token: self.accessToken, body: { role: 'USER' } });
+  assert.equal(demote.status, 403);
+  assert.match(demote.body.message, /own role/);
+  const del = await api(`/users/${self.user.id}`, { method: 'DELETE', token: self.accessToken });
+  assert.equal(del.status, 403);
+  assert.match(del.body.message, /own account/);
+  // still an admin, still there
+  assert.equal((await prisma.user.findUnique({ where: { id: self.user.id } })).role, 'ADMIN');
+  assert.equal((await api('/users?limit=1', { token: self.accessToken })).status, 200);
+});
+
 it('deleting a user also deletes their assets', async () => {
   const r = await register('doomed');
   const asset = (await newAsset(r.body.data.accessToken)).body.data.asset;

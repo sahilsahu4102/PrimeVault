@@ -16,6 +16,9 @@ import assetRoutes from './modules/assets/asset.routes.js';
 
 const app = express();
 
+// Rate limits are per client address; see env.TRUST_PROXY for why this must know about the proxy in front.
+if (env.TRUST_PROXY > 0) app.set('trust proxy', env.TRUST_PROXY);
+
 // ─── Security Middleware ───────────────────────────────────────
 app.use(helmet());
 app.use(cors({

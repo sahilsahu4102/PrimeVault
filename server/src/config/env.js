@@ -13,6 +13,13 @@ const env = {
   // Requests per IP per 15 minutes. The defaults are the production limits; tests raise them.
   RATE_LIMIT_MAX: Number(process.env.RATE_LIMIT_MAX) || 100,
   AUTH_RATE_LIMIT_MAX: Number(process.env.AUTH_RATE_LIMIT_MAX) || 20,
+  // How many proxies sit in front of the API (Express "trust proxy"). Behind one, every request arrives from the
+  // proxy's address, so without this all visitors would share one rate-limit bucket. A client cannot forge the hop
+  // closest to the server, so trusting one is safe. Production defaults to 1 (Render's load balancer); 0 elsewhere.
+  // Set TRUST_PROXY to override, for example 2 when another proxy (a CDN) is in front of that one.
+  TRUST_PROXY: process.env.TRUST_PROXY !== undefined && process.env.TRUST_PROXY !== ''
+    ? Math.max(0, parseInt(process.env.TRUST_PROXY, 10) || 0)
+    : (process.env.NODE_ENV === 'production' ? 1 : 0),
   // Most temporary guest accounts that may exist at once (see AuthService.createGuest).
   GUEST_MAX: Number(process.env.GUEST_MAX) || 200,
   // Public registration can never create an ADMIN unless this is "true" (demo deployments only).

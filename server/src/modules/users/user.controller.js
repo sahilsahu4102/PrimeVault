@@ -1,6 +1,7 @@
 import userService from './user.service.js';
 import ApiResponse from '../../utils/ApiResponse.js';
 import asyncHandler from '../../utils/asyncHandler.js';
+import ApiError from '../../utils/ApiError.js';
 
 /**
  * @desc    Get all users (paginated)
@@ -35,6 +36,10 @@ export const getUserById = asyncHandler(async (req, res) => {
  */
 export const updateUserRole = asyncHandler(async (req, res) => {
   const { role } = req.body;
+  // An admin who demotes themselves by mistake would lose access to this very route.
+  if (req.params.id === req.user.id) {
+    throw ApiError.forbidden('You cannot change your own role');
+  }
   const user = await userService.updateUserRole(req.params.id, role);
   ApiResponse.ok(res, 'User role updated successfully', { user });
 });
@@ -45,6 +50,9 @@ export const updateUserRole = asyncHandler(async (req, res) => {
  * @access  Admin
  */
 export const deleteUser = asyncHandler(async (req, res) => {
+  if (req.params.id === req.user.id) {
+    throw ApiError.forbidden('You cannot delete your own account');
+  }
   await userService.deleteUser(req.params.id);
   ApiResponse.ok(res, 'User deleted successfully');
 });
