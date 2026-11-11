@@ -1,5 +1,6 @@
 import logger from '../config/logger.js';
 import env from '../config/env.js';
+import ApiError from '../utils/ApiError.js';
 
 /**
  * Global error handling middleware
@@ -37,9 +38,11 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Response. The reason for an unexpected failure (a database error, say) goes to the log, not to the client.
+  // An ApiError was thrown on purpose with a message written for the client (the guest-slots 503), so it is kept.
+  const hide = statusCode >= 500 && !(err instanceof ApiError) && env.NODE_ENV !== 'development';
   const response = {
     success: false,
-    message: statusCode >= 500 && env.NODE_ENV !== 'development' ? 'Internal Server Error' : message,
+    message: hide ? 'Internal Server Error' : message,
   };
 
   if (errors.length > 0) {

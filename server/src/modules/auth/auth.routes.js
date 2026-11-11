@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login, refresh, logout, getMe } from './auth.controller.js';
+import { register, login, guest, refresh, logout, getMe } from './auth.controller.js';
 import authenticate from '../../middleware/auth.middleware.js';
 import validate from '../../middleware/validate.middleware.js';
 import { registerSchema, loginSchema } from './auth.validation.js';
@@ -113,6 +113,41 @@ router.post('/register', validate({ body: registerSchema }), register);
  *         description: Invalid credentials
  */
 router.post('/login', validate({ body: loginSchema }), login);
+
+/**
+ * @openapi
+ * /api/v1/auth/guest:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Start a guest session
+ *     description: >
+ *       Creates a temporary USER account (no body needed) and returns an access token, with the refresh
+ *       token in an httpOnly cookie, exactly like login. Guest accounts and their assets are deleted
+ *       after 24 hours, and at most GUEST_MAX (default 200) exist at once.
+ *     responses:
+ *       201:
+ *         description: Guest session started
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       $ref: '#/components/schemas/User'
+ *                     accessToken:
+ *                       type: string
+ *       503:
+ *         description: All guest slots are in use
+ */
+router.post('/guest', guest);
 
 /**
  * @openapi

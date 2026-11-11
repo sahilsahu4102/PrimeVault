@@ -39,6 +39,22 @@ export const login = asyncHandler(async (req, res) => {
 });
 
 /**
+ * @desc    Start a temporary guest session (a normal USER account that expires)
+ * @route   POST /api/v1/auth/guest
+ * @access  Public
+ */
+export const guest = asyncHandler(async (req, res) => {
+  const result = await authService.createGuest();
+
+  setRefreshTokenCookie(res, result.refreshToken);
+
+  ApiResponse.created(res, 'Guest session started', {
+    user: result.user,
+    accessToken: result.accessToken,
+  });
+});
+
+/**
  * @desc    Refresh access token
  * @route   POST /api/v1/auth/refresh
  * @access  Public

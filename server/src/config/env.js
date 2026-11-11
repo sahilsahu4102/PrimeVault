@@ -13,6 +13,8 @@ const env = {
   // Requests per IP per 15 minutes. The defaults are the production limits; tests raise them.
   RATE_LIMIT_MAX: Number(process.env.RATE_LIMIT_MAX) || 100,
   AUTH_RATE_LIMIT_MAX: Number(process.env.AUTH_RATE_LIMIT_MAX) || 20,
+  // Most temporary guest accounts that may exist at once (see AuthService.createGuest).
+  GUEST_MAX: Number(process.env.GUEST_MAX) || 200,
   // Public registration can never create an ADMIN unless this is "true" (demo deployments only).
   ALLOW_ADMIN_SIGNUP: process.env.ALLOW_ADMIN_SIGNUP === 'true',
 };

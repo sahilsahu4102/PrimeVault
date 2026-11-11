@@ -1,24 +1,29 @@
 import { PrismaClient } from '@prisma/client';
 import ApiError from '../../utils/ApiError.js';
 import logger from '../../config/logger.js';
+import { isGuest } from '../../config/guest.js';
 
 const prisma = new PrismaClient();
 
 class UserService {
   /**
-   * Get all users with pagination
+   * Get all users with pagination. Temporary guest accounts are left out: they expire by themselves and
+   * up to GUEST_MAX of them would otherwise bury the real accounts an admin came here to manage.
    */
   async getAllUsers({ page = 1, limit = 10, search = '' }) {
     const skip = (page - 1) * limit;
 
-    const where = search
-      ? {
-          OR: [
-            { name: { contains: search } },
-            { email: { contains: search } },
-          ],
-        }
-      : {};
+    const where = {
+      NOT: isGuest,
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search } },
+              { email: { contains: search } },
+            ],
+          }
+        : {}),
+    };
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({

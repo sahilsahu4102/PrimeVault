@@ -1,14 +1,46 @@
+import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import ApiError from '../../utils/ApiError.js';
 import env from '../../config/env.js';
 import logger from '../../config/logger.js';
+import { GUEST_DOMAIN, GUEST_TTL_MS, isGuest as guestWhere } from '../../config/guest.js';
 
 const prisma = new PrismaClient();
 const SALT_ROUNDS = 12;
 
 class AuthService {
+  /**
+   * Create a temporary guest account so a visitor can try the app without registering.
+   * Expired guests (older than 24 h) are deleted first, and their assets go with them (cascade).
+   * The password is not a valid bcrypt hash, so nobody can ever sign in to a guest with a password.
+   */
+  async createGuest() {
+    await prisma.user.deleteMany({ where: { ...guestWhere, createdAt: { lt: new Date(Date.now() - GUEST_TTL_MS) } } });
+
+    if ((await prisma.user.count({ where: guestWhere })) >= env.GUEST_MAX) {
+      throw ApiError.serviceUnavailable('Guest accounts are all in use right now. Please create an account instead.');
+    }
+
+    const id = crypto.randomUUID();
+    const user = await prisma.user.create({
+      data: {
+        name: `Guest ${id.slice(0, 4).toUpperCase()}`,
+        email: `guest-${id}@${GUEST_DOMAIN}`,
+        password: `!${crypto.randomBytes(24).toString('hex')}`,
+        role: 'USER',
+      },
+      select: { id: true, name: true, email: true, role: true, createdAt: true },
+    });
+
+    logger.info(`Guest account created: ${user.name}`);
+
+    const tokens = this.generateTokens(user);
+    await this.saveRefreshToken(user.id, tokens.refreshToken);
+    return { user, ...tokens };
+  }
+
   /**
    * Register a new user
    */

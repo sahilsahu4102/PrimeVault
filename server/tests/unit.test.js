@@ -123,3 +123,10 @@ test('error handler: an unexpected error is a 500 that leaks neither its message
   assert.equal(res.body.message, 'Internal Server Error');
   assert.equal(res.body.stack, undefined);
 });
+
+test('error handler: a 503 we threw on purpose keeps its client-facing message', () => {
+  const res = fakeRes();
+  errorHandler(ApiError.serviceUnavailable('Guest accounts are all in use right now.'), { path: '/x', method: 'POST' }, res);
+  assert.equal(res.code, 503);
+  assert.equal(res.body.message, 'Guest accounts are all in use right now.');
+});
