@@ -1,9 +1,10 @@
 import axios from 'axios';
+import { normalizeApiUrl, docsUrl } from '../utils/apiUrl';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+// Always ends in /api/v1, even if the deployment's setting gave only the host.
+const API_URL = normalizeApiUrl(import.meta.env.VITE_API_URL);
 
-// The Swagger docs live on the same server as the API, one level above /api/v1.
-export const DOCS_URL = `${API_URL.replace(/\/api\/v1\/?$/, '')}/api-docs`;
+export const DOCS_URL = docsUrl(API_URL);
 
 const api = axios.create({
   baseURL: API_URL,

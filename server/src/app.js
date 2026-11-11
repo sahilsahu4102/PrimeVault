@@ -8,6 +8,7 @@ import env from './config/env.js';
 import logger from './config/logger.js';
 import swaggerSpec from './config/swagger.js';
 import errorHandler from './middleware/error.middleware.js';
+import ApiError from './utils/ApiError.js';
 
 // Import routes
 import authRoutes from './modules/auth/auth.routes.js';
@@ -21,14 +22,16 @@ if (env.TRUST_PROXY > 0) app.set('trust proxy', env.TRUST_PROXY);
 
 // ─── Security Middleware ───────────────────────────────────────
 app.use(helmet());
+// A browser's Origin header has no trailing slash, so a CLIENT_URL pasted with one ("https://app.example/")
+// would quietly refuse every request from the real client. Each entry is trimmed and loses trailing slashes.
+const allowedOrigins = env.CLIENT_URL.split(',').map((o) => o.trim().replace(/\/+$/, '')).filter(Boolean);
 app.use(cors({
   origin: function (origin, callback) {
-    const allowedOrigins = env.CLIENT_URL.split(',').map(o => o.trim());
     // Allow requests with no origin (mobile apps, Postman, curl)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(ApiError.forbidden('Not allowed by CORS'));
     }
   },
   credentials: true,
