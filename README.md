@@ -5,7 +5,7 @@
 <h1 align="center">🔐 PrimeVault</h1>
 
 <p align="center">
-  <strong>A production-grade Crypto Asset Management Platform with JWT Authentication, Role-Based Access Control, and a stunning Glassmorphism React Dashboard.</strong>
+  <strong>A production-grade Crypto Asset Management Platform with JWT Authentication, Role-Based Access Control, and a plain, readable React client.</strong>
 </p>
 
 <p align="center">
@@ -32,7 +32,7 @@
 
 ## 📖 About
 
-**PrimeVault** is a full-stack web application designed for managing crypto asset portfolios. It features a secure REST API backend with dual-token JWT authentication, granular role-based access control, and a modern React frontend with glassmorphism design aesthetics — purpose-built for the Web3 ecosystem.
+**PrimeVault** is a full-stack web application designed for managing crypto asset portfolios. It features a secure REST API backend with dual-token JWT authentication, granular role-based access control, and a React client set like a station departure poster. It is purpose-built for the Web3 ecosystem.
 
 > **Built as a Backend Developer Internship assignment for [Primetrade.ai](https://primetrade.ai) — redefining trading intelligence in the Web3 space.**
 
@@ -57,12 +57,12 @@
 ### 🎨 Frontend (Supportive)
 | Feature | Implementation |
 |---------|---------------|
-| 🌌 **Glassmorphism UI** | Dark theme with `backdrop-filter: blur()`, frosted-glass cards, and layered depth |
-| ✨ **Micro-Animations** | Framer Motion page transitions, staggered card reveals, interactive hover effects |
-| 🔒 **Protected Routes** | JWT-based authentication with automatic silent token refresh |
-| 📱 **Responsive Layout** | Adaptive sidebar + mobile-friendly design |
-| 🔔 **Toast Notifications** | Real-time success/error feedback via `react-hot-toast` |
-| 📋 **Dashboard Analytics** | Overview stats, recent assets, role-aware data display |
+| 🚉 **Departure-poster design** | A yellow side rail, ink on paper, a bold price column, and a mark beside each asset that says whether you may edit it (yours, editable as admin, or view only). No gradients, glass or shadows |
+| 👤 **Guest access** | "Continue as guest" creates a temporary USER account through `POST /api/v1/auth/guest`; guests and their assets are deleted after 24 hours |
+| 🔒 **Protected Routes** | JWT-based authentication with automatic silent token refresh; the sleeping free-tier server is announced instead of leaving a button hanging |
+| 📱 **Responsive Layout** | The rail becomes a top bar and each table row a small block on a phone |
+| 🔔 **Server messages** | Validation errors from the API appear next to the field that caused them |
+| 📋 **Dashboard totals** | Every figure is a total counted by the server, shown next to the five latest assets |
 
 ---
 
@@ -71,8 +71,8 @@
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  CLIENT (React 19 + Vite)                               │
-│  ├── Framer Motion · React Router · Axios               │
-│  └── Glassmorphism CSS Design System                    │
+│  ├── React Router · Axios · react-hot-toast             │
+│  └── Plain CSS design system (no UI framework)          │
 ├─────────────────────────────────────────────────────────┤
 │  SERVER (Node.js + Express 5)                           │
 │  ├── JWT Auth · RBAC Middleware · Joi Validation         │
@@ -142,7 +142,9 @@ docker-compose up --build
 
 ## 🔑 Try It
 
-Open the app and **register your own account** on the sign-up page; it takes a few seconds. Every account can create assets and edit or delete its own.
+Open the live client at **https://prime-vault-alpha.vercel.app** and press **Continue as guest** (a temporary account, deleted after 24 hours), or **register your own account** on the sign-up page. Every account can create assets and edit or delete its own. The API's Swagger docs are at https://primevault-kc1y.onrender.com/api-docs.
+
+The demo API runs on a free tier that sleeps when idle, so the first request after a quiet spell can take about a minute; the client says so while it waits.
 
 If you run the project locally, `node prisma/seed.js` also creates sample users (password `User1234`) and 65 sample assets.
 
@@ -155,6 +157,7 @@ If you run the project locally, `node prisma/seed.js` also creates sample users 
 |--------|----------|--------|-------------|
 | `POST` | `/register` | Public | Register a new user account |
 | `POST` | `/login` | Public | Authenticate & receive tokens |
+| `POST` | `/guest` | Public | Start a temporary guest session (a USER account deleted after 24 hours) |
 | `POST` | `/refresh` | Public | Rotate refresh token & get new access token |
 | `POST` | `/logout` | Auth | Invalidate refresh token cookie |
 | `GET` | `/me` | Auth | Get authenticated user's profile |
@@ -162,7 +165,7 @@ If you run the project locally, `node prisma/seed.js` also creates sample users 
 ### 👥 Users (`/api/v1/users`) — Admin Only
 | Method | Endpoint | Access | Description |
 |--------|----------|--------|-------------|
-| `GET` | `/` | Admin | List all users (paginated) |
+| `GET` | `/` | Admin | List all users (paginated; temporary guest accounts are not listed) |
 | `GET` | `/:id` | Admin | Get user details by ID |
 | `PATCH` | `/:id/role` | Admin | Change a user's role |
 | `DELETE` | `/:id` | Admin | Delete a user account |
@@ -225,13 +228,14 @@ PrimeVault/
 │   │   │   └── Layout/Layout.jsx       # Sidebar + header shell
 │   │   ├── context/AuthContext.jsx      # Global auth state + auto-refresh
 │   │   ├── pages/
-│   │   │   ├── LoginPage.jsx           # Animated glassmorphism login
-│   │   │   ├── RegisterPage.jsx        # User registration with role select
+│   │   │   ├── LoginPage.jsx           # Sign-in with the guest door
+│   │   │   ├── RegisterPage.jsx        # Registration (no role choice: every sign-up is a USER)
 │   │   │   ├── DashboardPage.jsx       # Stats overview + recent assets
-│   │   │   ├── AssetsPage.jsx          # Full CRUD table with modals
+│   │   │   ├── AssetsPage.jsx          # Asset table: search, filter, sort, pagination, inline delete
+│   │   │   ├── AssetFormPage.jsx       # Add and edit an asset, with the server's validation messages
 │   │   │   └── UsersPage.jsx           # Admin user management
 │   │   ├── services/api.js             # Axios instance + interceptors
-│   │   ├── index.css                   # Design token system (CSS vars)
+│   │   ├── index.css                   # The design system (CSS variables, see DESIGN.md)
 │   │   └── App.jsx                     # Router configuration
 │   ├── Dockerfile
 │   └── nginx.conf                      # SPA-aware Nginx config
@@ -318,7 +322,7 @@ This project includes comprehensive phase-wise development documentation in the 
 | [Phase 2](./docs/Phase_2_Authentication_and_Security.md) | JWT dual-token strategy, cookie security, rate limiting |
 | [Phase 3](./docs/Phase_3_RBAC_and_Business_Logic.md) | RBAC middleware, CRUD operations, ownership enforcement |
 | [Phase 4](./docs/Phase_4_API_Documentation.md) | Swagger setup, Postman collection, health monitoring |
-| [Phase 5](./docs/Phase_5_Frontend_Dashboard.md) | Glassmorphism UI, auth flow, dashboard implementation |
+| [Phase 5](./docs/Phase_5_Frontend_Dashboard.md) | The first version of the frontend dashboard and auth flow (the visual design has since been replaced; see `DESIGN.md`) |
 | [Phase 6](./docs/Phase_6_Database_Migration_and_Web3.md) | MySQL migration, Web3 theming, realistic data seeding |
 | [Phase 7](./docs/Phase_7_DevOps_and_Deployment.md) | Docker, Nginx, CI/CD readiness, scalability |
 | [Thinking & Approach](./docs/THINKING_AND_APPROACH.md) | Engineering philosophy, trade-off analysis, security threat model |
@@ -345,15 +349,16 @@ See [`SCALABILITY.md`](./SCALABILITY.md) for detailed strategies on:
 cd server
 docker run -d --name pv-test-mysql -e MYSQL_ROOT_PASSWORD=pw -e MYSQL_DATABASE=primevault_test -p 3307:3306 mysql:8.4
 DATABASE_URL=mysql://root:pw@127.0.0.1:3307/primevault_test npx prisma db push   # PowerShell: $env:DATABASE_URL = "..."
-npm test        # 47 tests, about 15 seconds
+npm test        # 54 tests, about 15 seconds
 ```
 
 The suite uses Node's built-in test runner (no extra dependencies) and talks to the real API over HTTP. It **never reads `DATABASE_URL` from `.env`**: it uses `TEST_DATABASE_URL`, or the Docker database above, and refuses to start on any database whose name does not contain "test". Every user a test creates is deleted afterwards.
 
 | File | Tests | What it covers |
 |------|------:|----------------|
-| `tests/unit.test.js` | 15 | Joi rules (password strength, trimming, lower-cased email), mass-assignment stripping, the asset and query schemas, the role guard, access-token checks (missing, malformed, forged, expired, unsigned `alg: none`), and the error handler (duplicate and missing rows, no message or stack leaked on a 500) |
+| `tests/unit.test.js` | 16 | Joi rules (password strength, trimming, lower-cased email), mass-assignment stripping, the asset and query schemas, the role guard, access-token checks (missing, malformed, forged, expired, unsigned `alg: none`), and the error handler (duplicate and missing rows, no message or stack leaked on a 500, but a deliberate 503 keeps its message) |
 | `tests/api.test.js` | 26 | Register, login (same 401 for a wrong password and an unknown email), `/me`, deleted-user tokens, refresh-token rotation (the old token stops working, and a refresh from an unlisted origin is refused), logout; role checks on the user-management routes; asset create, read, update, delete with owner-or-admin permission; pagination, search, category filter, sorting; health, 404, security headers, CORS, body-size limit, Swagger |
+| `tests/guest.test.js` | 6 | Guest sessions: a normal USER with tokens and an httpOnly refresh cookie and no usable password; a guest can add and delete their own asset but cannot reach the users routes; the reserved guest address cannot be registered; guests older than 24 hours are deleted with their assets; the cap (`GUEST_MAX`) gives a plain 503; the admin user list and its total leave guests out |
 | `tests/rate-limit.test.js` | 2 | The 21st sign-in attempt and the 101st request in 15 minutes get 429, with the rate-limit headers |
 | `tests/deployment.test.js` and the setup tests | 4 | In production the refresh cookie is `Secure` and `SameSite=None` (and logout clears it with the same attributes); a deployment switch stays off by default; a small setup script is covered |
 
