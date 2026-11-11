@@ -13,12 +13,44 @@ const api = axios.create({
   withCredentials: true,
 });
 
+// The access token lives in memory only: a script injected into the page cannot read it from storage, and a
+// reload gets a fresh one from the httpOnly refresh cookie (see restoreSession). The only thing kept in
+// localStorage is a harmless flag saying "this browser had a session", so a first-time visitor does not
+// make a pointless refresh request.
+let accessToken = null;
+const SESSION_FLAG = 'pv_session';
+
+export const setAccessToken = (token) => { accessToken = token; };
+export const hasSessionFlag = () => localStorage.getItem(SESSION_FLAG) === '1';
+export const setSessionFlag = (on) => (on ? localStorage.setItem(SESSION_FLAG, '1') : localStorage.removeItem(SESSION_FLAG));
+
+// Earlier versions kept the access token and the user in localStorage; remove what they left behind.
+['accessToken', 'user'].forEach((key) => localStorage.removeItem(key));
+
+// One refresh at a time. When the 15-minute token expires, a page's parallel requests all get a 401 together.
+// The server rotates the refresh token on every refresh, so if each of them refreshed separately only the
+// first would succeed and the rest would sign the user out. They share this one promise instead.
+let refreshing = null;
+let redirecting = false;
+export function refreshSession() {
+  if (!refreshing) {
+    refreshing = axios
+      .post(`${API_URL}/auth/refresh`, {}, { withCredentials: true })
+      .then((res) => {
+        const { user, accessToken: token } = res.data.data;
+        accessToken = token;
+        return user;
+      })
+      .finally(() => { refreshing = null; });
+  }
+  return refreshing;
+}
+
 // Request interceptor - attach access token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
   },
@@ -40,22 +72,17 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const response = await axios.post(
-          `${API_URL}/auth/refresh`,
-          {},
-          { withCredentials: true }
-        );
-
-        const { accessToken } = response.data.data;
-        localStorage.setItem('accessToken', accessToken);
-
+        await refreshSession();
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        // Refresh failed - logout
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+        // Refresh failed - logout. Several requests can fail together; send the user to sign in once.
+        accessToken = null;
+        setSessionFlag(false);
+        if (!redirecting && window.location.pathname !== '/login') {
+          redirecting = true;
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       }
     }

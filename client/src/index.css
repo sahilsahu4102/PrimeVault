@@ -63,7 +63,7 @@ h3 { font-size: 1.0625rem; font-stretch: 90%; line-height: 1.2; }
 }
 
 .skip {
-  position: absolute; left: 8px; top: -60px; z-index: 10; padding: 10px 14px;
+  position: absolute; left: 8px; top: -60px; z-index: 10; padding: 8px 16px;
   background: var(--ink); color: var(--yellow); font-weight: 700; text-decoration: none;
 }
 .skip:focus { top: 8px; }
@@ -79,7 +79,7 @@ h3 { font-size: 1.0625rem; font-stretch: 90%; line-height: 1.2; }
   color: var(--ink);
 }
 .wordmark { font-weight: 900; font-stretch: 70%; font-size: 1.875rem; line-height: 1; letter-spacing: -0.005em; padding: 0 8px; text-decoration: none; display: block; }
-.wordmark small { display: block; margin-top: 6px; font-weight: 500; font-stretch: 100%; font-size: 0.8125rem; letter-spacing: 0; line-height: 1.3; }
+.wordmark small { display: block; margin-top: 8px; font-weight: 500; font-stretch: 100%; font-size: 0.8125rem; letter-spacing: 0; line-height: 1.3; }
 
 .nav { display: flex; flex-direction: column; gap: 4px; }
 .nav a {
@@ -107,7 +107,7 @@ h3 { font-size: 1.0625rem; font-stretch: 90%; line-height: 1.2; }
 
 .guest-bar {
   display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px;
-  padding: 10px 40px; background: var(--ink); color: var(--yellow); font-weight: 550;
+  padding: 12px 40px; background: var(--ink); color: var(--yellow); font-weight: 550;
 }
 .guest-bar a { color: var(--yellow); font-weight: 750; }
 .guest-bar a:hover { color: var(--paper); }
@@ -139,7 +139,7 @@ h3 { font-size: 1.0625rem; font-stretch: 90%; line-height: 1.2; }
 .rail .btn:hover { background: var(--ink); color: var(--yellow); }
 
 /* ───────────── Fields ───────────── */
-.field { display: grid; gap: 6px; }
+.field { display: grid; gap: 8px; }
 .field label, .label {
   font-weight: 700; font-stretch: 92%; font-size: 0.875rem; color: var(--ink-2);
 }
@@ -149,7 +149,7 @@ h3 { font-size: 1.0625rem; font-stretch: 90%; line-height: 1.2; }
   border: 1.5px solid var(--ink); border-radius: 0;
   font-size: 1rem; line-height: 1.3;
 }
-.textarea { padding: 10px 12px; min-height: 96px; resize: vertical; }
+.textarea { padding: 12px; min-height: 96px; resize: vertical; }
 .input::placeholder, .textarea::placeholder { color: var(--ink-3); opacity: 1; }
 .select {
   appearance: none; padding-right: 36px;
@@ -164,18 +164,18 @@ h3 { font-size: 1.0625rem; font-stretch: 90%; line-height: 1.2; }
 
 .search { position: relative; flex: 1 1 240px; min-width: 200px; }
 .search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; pointer-events: none; }
-.search .input { padding-left: 38px; }
+.search .input { padding-left: 40px; }
 
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 24px; }
 .form-grid .span-2 { grid-column: 1 / -1; }
-.stack { display: grid; gap: 18px; }
+.stack { display: grid; gap: 20px; }
 
 /* ───────────── Notices and state vocabulary ───────────── */
 .notice {
   display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: start;
-  padding: 12px 14px; border: 1.5px solid var(--ink); background: var(--white);
+  padding: 12px 16px; border: 1.5px solid var(--ink); background: var(--white);
 }
-.notice > .mk { margin-top: 5px; }
+.notice > .mk { margin-top: 4px; }
 .notice b { font-weight: 750; }
 .notice p { color: var(--ink-2); }
 .notice.is-error { border: 2px solid var(--red); }
@@ -190,9 +190,9 @@ h3 { font-size: 1.0625rem; font-stretch: 90%; line-height: 1.2; }
 /* ───────────── The timetable ───────────── */
 .tt-wrap { width: 100%; }
 .tt { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 0.9375rem; }
-.tt caption { text-align: left; padding-bottom: 10px; color: var(--ink-2); }
+.tt caption { text-align: left; padding-bottom: 12px; color: var(--ink-2); }
 .tt thead th {
-  padding: 10px 12px; text-align: left; vertical-align: bottom;
+  padding: 12px; text-align: left; vertical-align: bottom;
   font-weight: 800; font-stretch: 92%; font-size: 0.875rem;
   border-bottom: 3px solid var(--ink); white-space: nowrap;
 }
@@ -200,7 +200,7 @@ h3 { font-size: 1.0625rem; font-stretch: 90%; line-height: 1.2; }
 .tt tbody td { padding: 0 12px; height: 56px; border-bottom: 1px solid var(--rule); vertical-align: middle; overflow: hidden; }
 .tt tbody tr:hover { background: var(--row-hover); }
 .th-sort {
-  display: inline-flex; align-items: center; gap: 6px; padding: 0; background: none; border: 0; border-radius: 0;
+  display: inline-flex; align-items: center; gap: 8px; padding: 0; background: none; border: 0; border-radius: 0;
   font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; cursor: pointer;
 }
 .th-sort:hover { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 2px; }
@@ -225,8 +225,8 @@ h3 { font-size: 1.0625rem; font-stretch: 90%; line-height: 1.2; }
 .tt .name { display: block; font-weight: 650; font-size: 1rem; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tt .desc { display: block; font-size: 0.8125rem; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tt .price { font-weight: 800; font-stretch: 88%; font-size: 1.0625rem; letter-spacing: -0.005em; }
-.tt .price small { font-weight: 600; font-size: 0.75rem; color: var(--ink-3); margin-right: 3px; letter-spacing: 0; }
-.tt .actions { display: flex; gap: 6px; justify-content: flex-end; }
+.tt .price small { font-weight: 600; font-size: 0.75rem; color: var(--ink-3); margin-right: 4px; letter-spacing: 0; }
+.tt .actions { display: flex; gap: 8px; justify-content: flex-end; }
 .tt .cell-txt { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* loading / empty / error rows keep the height of real rows */
@@ -237,13 +237,13 @@ h3 { font-size: 1.0625rem; font-stretch: 90%; line-height: 1.2; }
 .confirm-box { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; justify-content: space-between; }
 .confirm-box p { font-weight: 650; }
 
-.legend { display: flex; flex-wrap: wrap; gap: 6px 24px; padding: 12px 0 0; font-size: 0.875rem; color: var(--ink-2); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 24px; padding: 12px 0 0; font-size: 0.875rem; color: var(--ink-2); }
 .legend span { display: inline-flex; align-items: center; gap: 8px; }
 
 .toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 20px; }
 .toolbar .select { width: auto; min-width: 160px; }
 
-.pager { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 18px 0 0; }
+.pager { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 20px 0 0; }
 .pager .count { margin-right: auto; color: var(--ink-2); font-size: 0.9375rem; }
 .pager button, .pager .gap {
   min-width: 40px; height: 40px; padding: 0 8px; background: transparent;
@@ -258,15 +258,15 @@ h3 { font-size: 1.0625rem; font-stretch: 90%; line-height: 1.2; }
 
 /* ───────────── Dashboard ───────────── */
 .dash { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 40px; align-items: start; }
-.dash h2 { margin-bottom: 14px; }
+.dash h2 { margin-bottom: 16px; }
 .totals { border-top: 3px solid var(--ink); }
 .totals div { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--rule); }
 .totals dt { font-weight: 600; }
 .totals dd { font-weight: 800; font-stretch: 85%; font-size: 1.5rem; line-height: 1; }
-.totals .sub dt { color: var(--ink-2); font-weight: 500; padding-left: 14px; }
+.totals .sub dt { color: var(--ink-2); font-weight: 500; padding-left: 16px; }
 .totals .sub dd { font-size: 1.125rem; font-weight: 700; }
 .totals-note { margin-top: 12px; font-size: 0.8125rem; color: var(--ink-3); }
-.more-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; font-weight: 700; }
+.more-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; font-weight: 700; }
 .more-link svg { width: 16px; height: 16px; }
 
 /* ───────────── Sign-in poster ───────────── */
@@ -286,12 +286,12 @@ h3 { font-size: 1.0625rem; font-stretch: 90%; line-height: 1.2; }
 .gate { display: flex; align-items: center; padding: 48px 56px; }
 .gate-inner { width: 100%; max-width: 420px; display: grid; gap: 28px; }
 .gate h2 { font-size: 1.75rem; font-stretch: 78%; }
-.gate section { display: grid; gap: 14px; }
-.gate .divider { display: flex; align-items: center; gap: 14px; font-weight: 700; font-stretch: 92%; font-size: 0.875rem; color: var(--ink-2); }
+.gate section { display: grid; gap: 16px; }
+.gate .divider { display: flex; align-items: center; gap: 16px; font-weight: 700; font-stretch: 92%; font-size: 0.875rem; color: var(--ink-2); }
 .gate .divider::before, .gate .divider::after { content: ''; flex: 1; height: 1.5px; background: var(--ink); }
 .gate .alt { color: var(--ink-2); }
 .gate .alt a { font-weight: 750; color: var(--ink); }
-.loading-screen { min-height: 100vh; display: grid; place-content: center; gap: 14px; padding: 24px; max-width: 480px; margin: 0 auto; text-align: left; }
+.loading-screen { min-height: 100vh; display: grid; place-content: center; gap: 16px; padding: 24px; max-width: 480px; margin: 0 auto; text-align: left; }
 
 /* ───────────── Toasts (react-hot-toast carries its own inline styles; these tune the parts it exposes) ───────────── */
 
@@ -323,11 +323,11 @@ h3 { font-size: 1.0625rem; font-stretch: 90%; line-height: 1.2; }
   .wordmark { padding: 0; font-size: 1.625rem; }
   .wordmark small { display: none; }
   .nav { order: 3; flex-direction: row; width: calc(100% + 32px); margin: 0 -16px; padding: 0 16px 8px; overflow-x: auto; gap: 2px; scrollbar-width: none; }
-  .nav a { flex: none; min-height: 40px; padding: 0 10px; font-size: 0.9375rem; }
+  .nav a { flex: none; min-height: 40px; padding: 0 12px; font-size: 0.9375rem; }
   .rail-user { margin: 0 0 0 auto; padding: 0; border: 0; display: flex; align-items: center; gap: 12px; }
   .rail-user .who { display: none; }
   .rail-user .btn { min-height: 36px; padding: 0 12px; font-size: 0.9375rem; }
-  .guest-bar { padding: 10px 16px; font-size: 0.9375rem; }
+  .guest-bar { padding: 12px 16px; font-size: 0.9375rem; }
   .page { padding: 24px 16px 56px; }
   .form-grid { grid-template-columns: minmax(0, 1fr); }
   .toolbar .select { flex: 1 1 140px; }
@@ -344,7 +344,7 @@ h3 { font-size: 1.0625rem; font-stretch: 90%; line-height: 1.2; }
     grid-template-areas: 'mark name name price' 'mark cat qty st' 'mark owner owner act';
   }
   .tt tbody td[role] { display: block; height: auto; padding: 0; border: 0; min-width: 0; width: auto; }
-  .tt td.c-mark { grid-area: mark; align-self: start; padding-top: 5px; }
+  .tt td.c-mark { grid-area: mark; align-self: start; padding-top: 4px; }
   .tt td.c-name { grid-area: name; }
   .tt td.c-price { grid-area: price; text-align: right; }
   .tt td.c-cat { grid-area: cat; }

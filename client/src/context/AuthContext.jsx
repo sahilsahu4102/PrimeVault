@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { authAPI } from '../services/api';
+import { authAPI, refreshSession, setAccessToken, hasSessionFlag, setSessionFlag } from '../services/api';
 import toast from 'react-hot-toast';
 
 const AuthContext = createContext(null);
@@ -13,61 +13,49 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('user');
-    return saved ? JSON.parse(saved) : null;
-  });
-  const [loading, setLoading] = useState(true);
+  // The access token is held in memory (see services/api.js), so after a reload the session is restored from the
+  // httpOnly refresh cookie. Until that answers we are "loading", but only if this browser had a session at all.
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(hasSessionFlag);
 
-  // Check if user is authenticated on mount
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      authAPI.getMe()
-        .then((res) => {
-          const userData = res.data.data.user;
-          setUser(userData);
-          localStorage.setItem('user', JSON.stringify(userData));
-        })
-        .catch(() => {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('user');
-          setUser(null);
-        })
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    if (!hasSessionFlag()) return undefined;
+    let live = true;
+    refreshSession()
+      .then((userData) => { if (live) setUser(userData); })
+      .catch(() => { setSessionFlag(false); })
+      .finally(() => { if (live) setLoading(false); });
+    return () => { live = false; };
   }, []);
 
-  const register = useCallback(async ({ name, email, password, role }) => {
-    const res = await authAPI.register({ name, email, password, role });
-    const { user: userData, accessToken } = res.data.data;
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('user', JSON.stringify(userData));
+  const startSession = useCallback((userData, accessToken) => {
+    setAccessToken(accessToken);
+    setSessionFlag(true);
     setUser(userData);
-    toast.success('Account created successfully!');
     return userData;
   }, []);
+
+  const register = useCallback(async ({ name, email, password }) => {
+    const res = await authAPI.register({ name, email, password });
+    const { user: userData, accessToken } = res.data.data;
+    startSession(userData, accessToken);
+    toast.success('Account created successfully!');
+    return userData;
+  }, [startSession]);
 
   const login = useCallback(async ({ email, password }) => {
     const res = await authAPI.login({ email, password });
     const { user: userData, accessToken } = res.data.data;
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
+    startSession(userData, accessToken);
     toast.success(`Welcome back, ${userData.name}!`);
     return userData;
-  }, []);
+  }, [startSession]);
 
   const guest = useCallback(async () => {
     const res = await authAPI.guest();
     const { user: userData, accessToken } = res.data.data;
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
-    return userData;
-  }, []);
+    return startSession(userData, accessToken);
+  }, [startSession]);
 
   const logout = useCallback(async () => {
     try {
@@ -75,8 +63,8 @@ export const AuthProvider = ({ children }) => {
     } catch {
       // Continue with local logout even if API fails
     }
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('user');
+    setAccessToken(null);
+    setSessionFlag(false);
     setUser(null);
     toast.success('Logged out successfully');
   }, []);
