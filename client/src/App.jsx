@@ -6,37 +6,35 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import AssetsPage from './pages/AssetsPage';
+import AssetFormPage from './pages/AssetFormPage';
 import UsersPage from './pages/UsersPage';
+
+const toastStyle = {
+  background: '#121212',
+  color: '#FBFAF3',
+  border: '2px solid #121212',
+  borderRadius: 0,
+  boxShadow: 'none',
+  fontFamily: "'Archivo', system-ui, sans-serif",
+  fontSize: '0.9375rem',
+  fontWeight: 600,
+  padding: '12px 14px',
+  maxWidth: 420,
+};
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        {/* Toast notifications */}
         <Toaster
-          position="top-right"
+          position="bottom-right"
           toastOptions={{
-            duration: 3000,
-            style: {
-              background: 'rgba(18, 18, 42, 0.95)',
-              color: '#f0f0f5',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              backdropFilter: 'blur(20px)',
-              borderRadius: '12px',
-              fontSize: '0.88rem',
-              fontFamily: 'Inter, sans-serif',
-            },
-            success: {
-              iconTheme: {
-                primary: '#00b894',
-                secondary: '#f0f0f5',
-              },
-            },
+            duration: 4000,
+            style: toastStyle,
+            success: { iconTheme: { primary: '#F5D000', secondary: '#121212' } },
             error: {
-              iconTheme: {
-                primary: '#ff6b6b',
-                secondary: '#f0f0f5',
-              },
+              style: { ...toastStyle, background: '#C4101F', border: '2px solid #C4101F', color: '#FFFFFF' },
+              iconTheme: { primary: '#FFFFFF', secondary: '#C4101F' },
             },
           }}
         />
@@ -47,30 +45,11 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
 
           {/* Protected routes */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/assets"
-            element={
-              <ProtectedRoute>
-                <AssetsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/users"
-            element={
-              <ProtectedRoute adminOnly>
-                <UsersPage />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+          <Route path="/assets" element={<ProtectedRoute><AssetsPage /></ProtectedRoute>} />
+          <Route path="/assets/new" element={<ProtectedRoute><AssetFormPage /></ProtectedRoute>} />
+          <Route path="/assets/:id/edit" element={<ProtectedRoute><AssetFormPage /></ProtectedRoute>} />
+          <Route path="/users" element={<ProtectedRoute adminOnly><UsersPage /></ProtectedRoute>} />
 
           {/* Default redirect */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

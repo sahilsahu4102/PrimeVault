@@ -2,6 +2,9 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
+// The Swagger docs live on the same server as the API, one level above /api/v1.
+export const DOCS_URL = `${API_URL.replace(/\/api\/v1\/?$/, '')}/api-docs`;
+
 const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -28,8 +31,12 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // A 401 from the sign-in calls themselves (wrong password) is an answer, not an expired session:
+    // refreshing there would fail and reload the page, losing the error message.
+    const isAuthCall = /^\/auth\/(login|register|guest|refresh)/.test(originalRequest?.url || '');
+
     // If 401 and not already retried, try refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthCall) {
       originalRequest._retry = true;
 
       try {
@@ -61,10 +68,14 @@ api.interceptors.response.use(
 export const authAPI = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
+  guest: () => api.post('/auth/guest'),
   logout: () => api.post('/auth/logout'),
   getMe: () => api.get('/auth/me'),
   refresh: () => api.post('/auth/refresh'),
 };
+
+// A sleeping free-tier server can take about a minute to answer its first request. Used to show that wait.
+export const pingServer = (signal) => axios.get(`${API_URL}/health`, { timeout: 90000, signal });
 
 // ─── Users API ──────────────────────────────────────────────
 export const usersAPI = {

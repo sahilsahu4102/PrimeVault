@@ -1,162 +1,124 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { motion } from 'framer-motion';
-import toast from 'react-hot-toast';
-import { HiOutlineMail, HiOutlineLockClosed, HiOutlineUser } from 'react-icons/hi';
+import AuthPoster from '../components/Auth/AuthPoster';
+import ServerStatus from '../components/ui/ServerStatus';
+import { StateMark } from '../components/ui/Marks';
+import useSlowNote, { WAKING_NOTE } from '../hooks/useSlowNote';
+import { readError } from '../utils/errors';
+import useTitle from '../hooks/useTitle';
 
 const RegisterPage = () => {
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-  }); // no role: the server makes every public sign-up a USER; admins come from the seed script
-  const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
+  useTitle('Create an account');
+  // no role: the server makes every public sign-up a USER; admins come from the seed script
+  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [busy, setBusy] = useState(null); // null | 'guest' | 'register'
+  const [problem, setProblem] = useState({ for: null, message: '', list: [], fields: {} });
+  const { register, guest } = useAuth();
   const navigate = useNavigate();
+  const slow = useSlowNote(!!busy);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    if (problem.fields[e.target.name]) setProblem({ ...problem, fields: { ...problem.fields, [e.target.name]: undefined } });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  const run = async (kind, action, fallback) => {
+    setBusy(kind);
+    setProblem({ for: null, message: '', list: [], fields: {} });
     try {
-      await register(form);
+      await action();
       navigate('/dashboard');
-    } catch (error) {
-      const msg = error.response?.data?.message || 'Registration failed';
-      const errors = error.response?.data?.errors;
-      if (errors?.length) {
-        errors.forEach((err) => toast.error(err.message));
-      } else {
-        toast.error(msg);
-      }
+    } catch (err) {
+      setProblem({ for: kind, ...readError(err, fallback) });
     } finally {
-      setLoading(false);
+      setBusy(null);
     }
   };
 
-  return (
-    <div className="auth-page">
-      <div className="particles">
-        {[...Array(8)].map((_, i) => (
-          <div key={i} className="particle" />
-        ))}
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    run('register', () => register(form), 'Registration failed');
+  };
+
+  const waitNote = slow && (
+    <div className="notice is-wait" role="status">
+      <StateMark kind="waking" />
+      <p>{WAKING_NOTE}</p>
+    </div>
+  );
+  const errorNote = (kind, title) => problem.for === kind && (
+    <div className="notice is-error" role="alert">
+      <StateMark kind="down" />
+      <div>
+        <b>{title}</b>
+        {problem.list.length > 1
+          ? <ul style={{ paddingLeft: 18 }}>{problem.list.map((m) => <li key={m}>{m}</li>)}</ul>
+          : <p>{problem.message}</p>}
       </div>
+    </div>
+  );
 
-      <motion.div
-        className="auth-card glass-strong"
-        initial={{ opacity: 0, y: 30, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-      >
-        <div className="auth-header">
-          <motion.div
-            className="auth-logo"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: 'spring', stiffness: 400 }}
-          >
-            PT
-          </motion.div>
-          <h1 className="auth-title">Create Account</h1>
-          <p className="auth-subtitle">Join PrimeVault and start managing assets</p>
+  const fieldProps = (name) => ({
+    name,
+    className: `input${problem.fields[name] ? ' is-invalid' : ''}`,
+    'aria-invalid': problem.fields[name] ? true : undefined,
+    'aria-describedby': problem.fields[name] ? `reg-${name}-err` : name === 'password' ? 'reg-password-hint' : undefined,
+    value: form[name],
+    onChange: handleChange,
+    required: true,
+    disabled: !!busy,
+  });
+  const fieldError = (name) => problem.fields[name] && <p className="field-error" id={`reg-${name}-err`}>{problem.fields[name]}</p>;
+
+  return (
+    <div className="auth">
+      <AuthPoster />
+
+      <div className="gate">
+        <div className="gate-inner">
+          <section aria-labelledby="reg-title">
+            <h2 id="reg-title">Create an account</h2>
+            <p className="alt">Every new account is a USER: you can add assets and edit or delete your own.</p>
+            <form className="stack" onSubmit={handleSubmit}>
+              <div className="field">
+                <label htmlFor="reg-name">Name</label>
+                <input id="reg-name" type="text" autoComplete="name" {...fieldProps('name')} />
+                {fieldError('name')}
+              </div>
+              <div className="field">
+                <label htmlFor="reg-email">Email</label>
+                <input id="reg-email" type="email" autoComplete="email" placeholder="you@example.com" {...fieldProps('email')} />
+                {fieldError('email')}
+              </div>
+              <div className="field">
+                <label htmlFor="reg-password">Password</label>
+                <input id="reg-password" type="password" autoComplete="new-password" {...fieldProps('password')} />
+                <p className="field-hint" id="reg-password-hint">At least 8 characters, with an uppercase letter, a lowercase letter and a number.</p>
+                {fieldError('password')}
+              </div>
+              <button type="submit" className="btn btn-primary btn-block" disabled={!!busy}>
+                {busy === 'register' ? 'Creating account…' : 'Create account'}
+              </button>
+              {busy === 'register' && waitNote}
+              {errorNote('register', 'Could not create the account')}
+            </form>
+            <p className="alt">Already registered? <Link to="/login">Sign in</Link></p>
+          </section>
+
+          <div className="divider" aria-hidden="true">or</div>
+
+          <section aria-label="Guest access">
+            <button type="button" className="btn btn-block" disabled={!!busy} onClick={() => run('guest', guest, 'Could not start a guest session')}>
+              {busy === 'guest' ? 'Starting guest session…' : 'Continue as guest instead'}
+            </button>
+            {busy === 'guest' && waitNote}
+            {errorNote('guest', 'Could not start a guest session')}
+          </section>
+
+          <ServerStatus />
         </div>
-
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label" htmlFor="reg-name">Full Name</label>
-            <div style={{ position: 'relative' }}>
-              <HiOutlineUser
-                style={{
-                  position: 'absolute', left: 14, top: '50%',
-                  transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '1.1rem',
-                }}
-              />
-              <input
-                id="reg-name"
-                type="text"
-                name="name"
-                className="form-input"
-                placeholder="John Doe"
-                value={form.name}
-                onChange={handleChange}
-                required
-                disabled={loading}
-                style={{ paddingLeft: 40 }}
-              />
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label" htmlFor="reg-email">Email Address</label>
-            <div style={{ position: 'relative' }}>
-              <HiOutlineMail
-                style={{
-                  position: 'absolute', left: 14, top: '50%',
-                  transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '1.1rem',
-                }}
-              />
-              <input
-                id="reg-email"
-                type="email"
-                name="email"
-                className="form-input"
-                placeholder="you@example.com"
-                value={form.email}
-                onChange={handleChange}
-                required
-                disabled={loading}
-                style={{ paddingLeft: 40 }}
-              />
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label" htmlFor="reg-password">Password</label>
-            <div style={{ position: 'relative' }}>
-              <HiOutlineLockClosed
-                style={{
-                  position: 'absolute', left: 14, top: '50%',
-                  transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '1.1rem',
-                }}
-              />
-              <input
-                id="reg-password"
-                type="password"
-                name="password"
-                className="form-input"
-                placeholder="Min 8 chars, uppercase, lowercase, number"
-                value={form.password}
-                onChange={handleChange}
-                required
-                disabled={loading}
-                style={{ paddingLeft: 40 }}
-              />
-            </div>
-          </div>
-
-          <motion.button
-            type="submit"
-            className="btn btn-primary"
-            disabled={loading}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            style={{ width: '100%', marginTop: 8 }}
-          >
-            {loading ? <div className="spinner" style={{ width: 20, height: 20, borderWidth: 2 }} /> : 'Create Account'}
-          </motion.button>
-        </form>
-
-        <div className="auth-footer">
-          Already have an account?{' '}
-          <Link to="/login" style={{ fontWeight: 600 }}>
-            Sign in
-          </Link>
-        </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

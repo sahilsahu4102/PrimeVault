@@ -1,202 +1,125 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { LuArrowRight } from 'react-icons/lu';
 import { useAuth } from '../context/AuthContext';
-import { assetsAPI, usersAPI } from '../services/api';
+import { assetsAPI, authAPI, usersAPI } from '../services/api';
 import Layout from '../components/Layout/Layout';
-import { motion } from 'framer-motion';
-import {
-  HiOutlineCube,
-  HiOutlineUsers,
-  HiOutlineShieldCheck,
-  HiOutlineTrendingUp,
-} from 'react-icons/hi';
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.1, duration: 0.4, ease: [0.4, 0, 0.2, 1] },
-  }),
-};
+import { OwnerMark, StateMark } from '../components/ui/Marks';
+import useSlowNote, { WAKING_NOTE } from '../hooks/useSlowNote';
+import { formatCount, formatPrice, ownerKind } from '../utils/format';
+import useTitle from '../hooks/useTitle';
 
 const DashboardPage = () => {
+  useTitle('Dashboard');
   const { user, isAdmin } = useAuth();
-  const [stats, setStats] = useState({
-    totalAssets: 0,
-    myAssets: 0,
-    totalUsers: 0,
-    activeAssets: 0,
-  });
-  const [recentAssets, setRecentAssets] = useState([]);
+  const [latest, setLatest] = useState(null); // null = not loaded yet
+  const [totals, setTotals] = useState({ assets: null, active: null, yours: null, users: null });
+  const [failed, setFailed] = useState(false);
   const [loading, setLoading] = useState(true);
+  const slow = useSlowNote(loading);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
+  const load = useCallback(async () => {
+    setLoading(true);
+    setFailed(false);
+    // Every figure comes from its own request, so each one is a real total and a failure shows as a dash.
+    const [recent, active, me, users] = await Promise.allSettled([
+      assetsAPI.getAll({ limit: 5, sortBy: 'createdAt', order: 'desc' }),
+      assetsAPI.getAll({ limit: 1, isActive: true }),
+      authAPI.getMe(),
+      isAdmin ? usersAPI.getAll({ limit: 1 }) : Promise.resolve(null),
+    ]);
+    const val = (r, pick) => (r.status === 'fulfilled' && r.value ? pick(r.value.data.data) : null);
+    setLatest(val(recent, (d) => d.assets));
+    setTotals({
+      assets: val(recent, (d) => d.pagination.total),
+      active: val(active, (d) => d.pagination.total),
+      yours: val(me, (d) => d.user._count.assets),
+      users: isAdmin ? val(users, (d) => d.pagination.total) : null,
+    });
+    setFailed([recent, active, me, ...(isAdmin ? [users] : [])].some((r) => r.status === 'rejected'));
+    setLoading(false);
+  }, [isAdmin]);
 
-  const fetchDashboardData = async () => {
-    try {
-      const assetsRes = await assetsAPI.getAll({ limit: 5, sortBy: 'createdAt', order: 'desc' });
-      const allAssets = assetsRes.data.data;
-      
-      let totalUsers = 0;
-      if (isAdmin) {
-        try {
-          const usersRes = await usersAPI.getAll({ limit: 1 });
-          totalUsers = usersRes.data.data.pagination.total;
-        } catch {
-          totalUsers = 0;
-        }
-      }
+  useEffect(() => { load(); }, [load]);
 
-      setStats({
-        totalAssets: allAssets.pagination.total,
-        myAssets: allAssets.assets.filter((p) => p.userId === user.id).length,
-        totalUsers,
-        activeAssets: allAssets.assets.filter((p) => p.isActive).length,
-      });
-      setRecentAssets(allAssets.assets);
-    } catch (error) {
-      console.error('Failed to fetch dashboard data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const statCards = [
-    {
-      label: 'Total Crypto Assets',
-      value: stats.totalAssets,
-      icon: HiOutlineCube,
-      color: 'var(--primary)',
-      bg: 'rgba(108, 92, 231, 0.12)',
-    },
-    {
-      label: 'Active Crypto Assets',
-      value: stats.activeAssets,
-      icon: HiOutlineTrendingUp,
-      color: 'var(--success)',
-      bg: 'var(--success-bg)',
-    },
-    ...(isAdmin
-      ? [
-          {
-            label: 'Total Users',
-            value: stats.totalUsers,
-            icon: HiOutlineUsers,
-            color: 'var(--accent)',
-            bg: 'rgba(0, 206, 201, 0.12)',
-          },
-        ]
-      : []),
-    {
-      label: 'Your Role',
-      value: user?.role,
-      icon: HiOutlineShieldCheck,
-      color: 'var(--warning)',
-      bg: 'var(--warning-bg)',
-    },
-  ];
-
-  if (loading) {
-    return (
-      <Layout>
-        <div className="loading-screen" style={{ minHeight: '60vh' }}>
-          <div className="spinner spinner-lg" />
-        </div>
-      </Layout>
-    );
-  }
+  const fig = (n) => (loading ? '…' : n == null ? 'n/a' : formatCount(n));
+  const inactive = totals.assets != null && totals.active != null ? totals.assets - totals.active : null;
 
   return (
     <Layout>
-      <div className="page-header">
-        <h1 className="page-title">Dashboard</h1>
-        <p className="page-subtitle">
-          Welcome back, <strong>{user?.name}</strong>! Here's your overview.
-        </p>
-      </div>
-
-      <div className="page-content">
-        {/* Stats Grid */}
-        <div className="stats-grid">
-          {statCards.map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              className="stat-card glass"
-              custom={i}
-              initial="hidden"
-              animate="visible"
-              variants={cardVariants}
-            >
-              <div
-                className="stat-icon"
-                style={{ background: stat.bg, color: stat.color }}
-              >
-                <stat.icon />
-              </div>
-              <div className="stat-value">{stat.value}</div>
-              <div className="stat-label">{stat.label}</div>
-            </motion.div>
-          ))}
+      <div className="page">
+        <div className="page-head">
+          <h1>Dashboard</h1>
+          <p className="lede">Signed in as {user?.name}, {user?.role}. Every figure below is a total counted by the server.</p>
         </div>
 
-        {/* Recent Crypto Assets */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.4 }}
-        >
-          <h2 style={{ marginBottom: 16 }}>Recent Crypto Assets</h2>
-          {recentAssets.length === 0 ? (
-            <div className="empty-state glass">
-              <div className="empty-state-icon">📦</div>
-              <div className="empty-state-title">No assets yet</div>
-              <p>Create your first asset to get started.</p>
-            </div>
-          ) : (
-            <div className="table-container glass">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Category</th>
-                    <th>Price</th>
-                    <th>Stock</th>
-                    <th>Status</th>
-                    <th>Created By</th>
+        {loading && slow && (
+          <div className="notice is-wait" role="status" style={{ marginBottom: 24 }}><StateMark kind="waking" /><p>{WAKING_NOTE}</p></div>
+        )}
+        {!loading && failed && (
+          <div className="notice is-error" role="alert" style={{ marginBottom: 24 }}>
+            <StateMark kind="down" />
+            <div><b>Some figures could not be loaded</b><p>They show as n/a.</p>
+              <p style={{ marginTop: 8 }}><button type="button" className="btn btn-sm" onClick={load}>Try again</button></p></div>
+          </div>
+        )}
+
+        <div className="dash">
+          <section aria-labelledby="latest-h">
+            <h2 id="latest-h">Latest assets</h2>
+            <div className="tt-wrap">
+              <table className="tt latest" role="table" aria-busy={loading} aria-label="Latest assets">
+                <thead role="rowgroup">
+                  <tr role="row">
+                    <th scope="col" className="c-mark" role="columnheader"><span className="sr-only">Ownership</span></th>
+                    <th scope="col" role="columnheader">Name</th>
+                    <th scope="col" className="c-cat" role="columnheader">Category</th>
+                    <th scope="col" className="c-price num" role="columnheader">Price (USD)</th>
+                    <th scope="col" className="c-status" role="columnheader">Status</th>
+                    <th scope="col" className="c-owner" role="columnheader">Owner</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {recentAssets.map((asset) => (
-                    <tr key={asset.id}>
-                      <td style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
-                        {asset.name}
-                      </td>
-                      <td>
-                        <span className="badge badge-primary">{asset.category}</span>
-                      </td>
-                      <td style={{ fontWeight: 600, color: 'var(--success)' }}>
-                        ${asset.price.toFixed(2)}
-                      </td>
-                      <td>{asset.stock}</td>
-                      <td>
-                        <span
-                          className={`badge ${
-                            asset.isActive ? 'badge-success' : 'badge-error'
-                          }`}
-                        >
-                          {asset.isActive ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      <td>{asset.user?.name}</td>
-                    </tr>
+                <tbody role="rowgroup">
+                  {loading && [0, 1, 2, 3, 4].map((i) => (
+                    <tr key={i} className="row-state" role="row" aria-hidden="true"><td colSpan={6} role="cell"><span className="skel" style={{ width: `${68 - i * 7}%` }} /></td></tr>
                   ))}
+                  {!loading && latest && latest.length === 0 && (
+                    <tr className="row-state is-tall" role="row"><td colSpan={6} role="cell"><b>There are no assets yet.</b>{' '}<Link to="/assets/new">Add the first one</Link>.</td></tr>
+                  )}
+                  {!loading && !latest && (
+                    <tr className="row-state is-tall" role="row"><td colSpan={6} role="cell"><b>The latest assets could not be loaded.</b></td></tr>
+                  )}
+                  {!loading && latest && latest.map((a) => {
+                    const kind = ownerKind(a, user, isAdmin);
+                    return (
+                      <tr key={a.id} role="row">
+                        <td className="c-mark" role="cell">{kind && <OwnerMark kind={kind} />}</td>
+                        <td className="c-name" role="cell"><span className="name" title={a.name}>{a.name}</span></td>
+                        <td className="c-cat" role="cell" data-label="Category"><span className="cell-txt">{a.category}</span></td>
+                        <td className="c-price num" role="cell"><span className="price"><small>$</small>{formatPrice(a.price)}</span></td>
+                        <td className="c-status" role="cell" data-label="Status"><span className="state-line"><StateMark kind={a.isActive ? 'active' : 'inactive'} />{a.isActive ? 'Active' : 'Inactive'}</span></td>
+                        <td className="c-owner" role="cell"><span className="cell-txt">{a.user?.name}</span></td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
-          )}
-        </motion.div>
+            <Link to="/assets" className="more-link">All assets <LuArrowRight aria-hidden="true" /></Link>
+          </section>
+
+          <section aria-labelledby="totals-h">
+            <h2 id="totals-h">Totals</h2>
+            <dl className="totals">
+              <div><dt>Assets in total</dt><dd>{fig(totals.assets)}</dd></div>
+              <div className="sub"><dt>Active</dt><dd>{fig(totals.active)}</dd></div>
+              <div className="sub"><dt>Inactive</dt><dd>{loading ? '…' : inactive == null ? 'n/a' : formatCount(inactive)}</dd></div>
+              <div><dt>Yours</dt><dd>{fig(totals.yours)}</dd></div>
+              {isAdmin && <div><dt>Users</dt><dd>{fig(totals.users)}</dd></div>}
+            </dl>
+            <p className="totals-note">Assets are shared: every signed-in user sees all of them. “Yours” counts only the assets you own.</p>
+          </section>
+        </div>
       </div>
     </Layout>
   );

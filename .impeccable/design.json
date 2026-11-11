@@ -1,0 +1,344 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-11T11:50:31Z",
+  "title": "Design System: PrimeVault",
+  "extensions": {
+    "colorMeta": {
+      "yellow": {
+        "role": "primary",
+        "displayName": "Poster Yellow",
+        "canonical": "#f5d000",
+        "tonalRamp": [
+          "#0b0d11",
+          "#4e450c",
+          "#917c07",
+          "#d4b402",
+          "#f6d621",
+          "#f9e262",
+          "#fbeea4",
+          "#fefae6"
+        ]
+      },
+      "yellow-hover": {
+        "role": "primary",
+        "displayName": "Yellow Hover",
+        "canonical": "#ffe14d",
+        "tonalRamp": [
+          "#0b0d11",
+          "#514a22",
+          "#968633",
+          "#dcc344",
+          "#ffe564",
+          "#ffed92",
+          "#fff4bf",
+          "#fffced"
+        ]
+      },
+      "red": {
+        "role": "secondary",
+        "displayName": "Refusal Red",
+        "canonical": "#c4101f",
+        "tonalRamp": [
+          "#0b0d11",
+          "#400e15",
+          "#750f19",
+          "#aa101d",
+          "#cc2f3c",
+          "#db6c75",
+          "#eaaaaf",
+          "#f9e7e9"
+        ]
+      },
+      "red-wash": {
+        "role": "secondary",
+        "displayName": "Red Wash",
+        "canonical": "#fdeeea",
+        "tonalRamp": [
+          "#0b0d11",
+          "#504d4f",
+          "#958e8d",
+          "#dacecb",
+          "#fdf0ed",
+          "#fef5f2",
+          "#fef9f8",
+          "#fffdfd"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#fbfaf3",
+        "tonalRamp": [
+          "#0b0d11",
+          "#505152",
+          "#949492",
+          "#d9d8d3",
+          "#fcfbf5",
+          "#fdfcf8",
+          "#fefdfb",
+          "#fffefe"
+        ]
+      },
+      "paper-sunk": {
+        "role": "neutral",
+        "displayName": "Paper Sunk",
+        "canonical": "#f1efe2",
+        "tonalRamp": [
+          "#0b0d11",
+          "#4d4e4d",
+          "#8e8e88",
+          "#d0cfc4",
+          "#f3f1e6",
+          "#f6f5ed",
+          "#faf9f5",
+          "#fefdfc"
+        ]
+      },
+      "entry": {
+        "role": "neutral",
+        "displayName": "Entry",
+        "canonical": "#fffef9",
+        "tonalRamp": [
+          "#0b0d11",
+          "#515253",
+          "#969796",
+          "#dcdcd8",
+          "#fffefa",
+          "#fffefb",
+          "#fffffd",
+          "#fffffe"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#121212",
+        "tonalRamp": [
+          "#0b0d11",
+          "#0d0e11",
+          "#0f1012",
+          "#111112",
+          "#303030",
+          "#6d6d6d",
+          "#aaaaaa",
+          "#e7e7e7"
+        ]
+      },
+      "ink-secondary": {
+        "role": "neutral",
+        "displayName": "Ink Secondary",
+        "canonical": "#3f3e3a",
+        "tonalRamp": [
+          "#0b0d11",
+          "#1a1b1d",
+          "#292928",
+          "#383734",
+          "#585753",
+          "#898886",
+          "#babab9",
+          "#ececeb"
+        ]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Ink Muted",
+        "canonical": "#66645c",
+        "tonalRamp": [
+          "#0b0d11",
+          "#252626",
+          "#3f3f3c",
+          "#595851",
+          "#7a7871",
+          "#a1a09b",
+          "#c8c8c5",
+          "#f0f0ef"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Rule",
+        "canonical": "#d9d5c0",
+        "tonalRamp": [
+          "#0b0d11",
+          "#464643",
+          "#817f75",
+          "#bcb8a7",
+          "#dedac8",
+          "#e8e5d8",
+          "#f1f0e8",
+          "#fbfbf9"
+        ]
+      },
+      "row-hover": {
+        "role": "neutral",
+        "displayName": "Row Hover",
+        "canonical": "#fff4b0",
+        "tonalRamp": [
+          "#0b0d11",
+          "#514f3e",
+          "#96916c",
+          "#dcd399",
+          "#fff5ba",
+          "#fff8ce",
+          "#fffbe3",
+          "#fffef7"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page titles."
+      },
+      "poster": {
+        "displayName": "Poster",
+        "purpose": "The sign-in headline."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section titles and the guest door."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Field labels, table heads and the divider word."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "Prices and totals, tabular and right-aligned."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Button fill change, 150ms; everything is disabled under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "auth-stack",
+        "value": "960px"
+      },
+      {
+        "name": "rail-to-bar",
+        "value": "860px"
+      },
+      {
+        "name": "table-to-blocks",
+        "value": "760px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one filled action on a screen; hover flips to poster yellow.",
+      "html": "<button class=\"ds-btn ds-primary\">Continue as guest</button>",
+      "css": ".ds-btn{font-family:'Archivo','Arial Narrow',sans-serif;font-weight:650;font-size:16px;height:44px;padding:0 20px;border:2px solid #121212;border-radius:0;cursor:pointer;background:transparent;color:#121212}.ds-primary{background:#121212;color:#fbfaf3}.ds-primary:hover{background:#f5d000;color:#121212}.ds-btn:focus-visible{outline:3px solid #121212;outline-offset:2px}"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action.",
+      "html": "<button class=\"ds-btn ds-outline\">Sign in</button>",
+      "css": ".ds-btn{font-family:'Archivo','Arial Narrow',sans-serif;font-weight:650;font-size:16px;height:44px;padding:0 20px;border:2px solid #121212;border-radius:0;cursor:pointer;background:transparent;color:#121212}.ds-outline:hover{background:#121212;color:#fbfaf3}"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive action in refusal red.",
+      "html": "<button class=\"ds-btn ds-danger\">Delete</button>",
+      "css": ".ds-btn{font-family:'Archivo','Arial Narrow',sans-serif;font-weight:650;font-size:16px;height:44px;padding:0 20px;border:2px solid #121212;border-radius:0;cursor:pointer;background:transparent;color:#121212}.ds-danger{border-color:#c4101f;color:#c4101f}.ds-danger:hover{background:#c4101f;color:#fbfaf3}"
+    },
+    {
+      "name": "Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "A typing field with its label above.",
+      "html": "<label class=\"ds-label\" for=\"e\">Email</label><input id=\"e\" class=\"ds-field\" placeholder=\"you@example.com\">",
+      "css": ".ds-label{display:block;font-family:'Archivo','Arial Narrow',sans-serif;font-weight:700;font-size:14px;color:#3f3e3a;margin-bottom:6px}.ds-field{display:block;width:100%;height:44px;padding:0 12px;background:#fffef9;border:1.5px solid #121212;border-radius:0;color:#121212;font-size:16px}.ds-field:focus-visible{outline:3px solid #121212;outline-offset:2px}"
+    },
+    {
+      "name": "Rail Link",
+      "kind": "navigation",
+      "refersTo": "nav-link",
+      "description": "A rail link; the current page is an ink block with yellow text.",
+      "html": "<div class=\"ds-rail\"><a class=\"ds-link\" href=\"#\">Dashboard</a><a class=\"ds-link ds-on\" href=\"#\">Assets</a></div>",
+      "css": ".ds-rail{background:#f5d000;padding:12px;width:220px;display:grid;gap:4px}.ds-link{display:block;height:44px;line-height:40px;padding:0 12px;border:2px solid transparent;color:#121212;text-decoration:none;font-family:'Archivo','Arial Narrow',sans-serif;font-weight:650}.ds-link:hover{background:#ffe14d;border-color:#121212}.ds-on{background:#121212;color:#f5d000;border-color:#121212}"
+    },
+    {
+      "name": "Timetable Row",
+      "kind": "table",
+      "refersTo": "nav-link",
+      "description": "An asset row: ownership mark, name, a bold right-aligned price, state mark and word.",
+      "html": "<table class=\"ds-tt\"><thead><tr><th></th><th>Name</th><th class=\"n\">Price (USD)</th><th>Status</th></tr></thead><tbody><tr><td><svg width=\"14\" height=\"14\" viewBox=\"0 0 14 14\"><circle cx=\"7\" cy=\"7\" r=\"5.5\" fill=\"#121212\"/></svg></td><td>Ethereum</td><td class=\"n p\">2,500.75</td><td><svg width=\"14\" height=\"14\" viewBox=\"0 0 14 14\"><rect x=\"1.5\" y=\"1.5\" width=\"11\" height=\"11\" fill=\"#121212\"/></svg> Active</td></tr><tr><td></td><td>Solana</td><td class=\"n p\">142.10</td><td><svg width=\"14\" height=\"14\" viewBox=\"0 0 14 14\"><rect x=\"2.5\" y=\"2.5\" width=\"9\" height=\"9\" fill=\"none\" stroke=\"#121212\" stroke-width=\"2\"/></svg> Inactive</td></tr></tbody></table>",
+      "css": ".ds-tt{border-collapse:collapse;width:420px;font-family:'Archivo','Arial Narrow',sans-serif;font-size:15px}.ds-tt th{text-align:left;font-weight:800;font-size:14px;padding:8px 10px;border-bottom:3px solid #121212}.ds-tt td{padding:0 10px;height:48px;border-bottom:1px solid #d9d5c0}.ds-tt .n{text-align:right}.ds-tt .p{font-weight:800;font-stretch:88%;font-size:17px}.ds-tt tr:hover td{background:#fff4b0}"
+    },
+    {
+      "name": "Waking Notice",
+      "kind": "custom",
+      "refersTo": "notice",
+      "description": "The sleeping demo server, stated honestly: a dashed box with the dashed-ring mark.",
+      "html": "<div class=\"ds-note\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 14 14\"><rect x=\"2.5\" y=\"2.5\" width=\"9\" height=\"9\" fill=\"none\" stroke=\"#121212\" stroke-width=\"2\" stroke-dasharray=\"3 2\"/></svg><div><b>The demo server is waking up</b><p>It sleeps when idle, so the first request can take about a minute.</p></div></div>",
+      "css": ".ds-note{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;padding:12px 14px;border:2px dashed #121212;background:#f1efe2;font-family:'Archivo','Arial Narrow',sans-serif;font-size:15px;width:380px}.ds-note p{margin:0;color:#3f3e3a}.ds-note svg{margin-top:5px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Departure Poster",
+    "overview": "The asset list is set like a Swiss station departure poster: a poster-yellow rail, ink on paper, a bold figure leading every row, and footnote marks that say who may edit what.",
+    "keyCharacteristics": [
+      "A poster-yellow rail carries the wordmark, navigation and the signed-in user; the page beside it is paper.",
+      "Archivo throughout; its width axis runs headings and figures condensed, tabular numerals everywhere a number is read.",
+      "The mark column: a solid dot means yours, an outlined diamond means editable as admin, nothing means view only. A legend under the table prints the key, listing only the marks that role can see.",
+      "A single vocabulary of drawn state marks: solid square (active, ready), ring (inactive), dashed ring (waking, checking), struck square (down).",
+      "Every slow or failed request has a stated state: the sleeping demo server is announced with the real wait, and no button is left hanging.",
+      "Square corners, no shadow, no gradient, no blur."
+    ],
+    "rules": [
+      {
+        "name": "The Yellow-Stays-on-the-Rail Rule",
+        "body": "Yellow is a shell colour, not an accent to scatter. It never fills a card or a table, and text on it is always ink.",
+        "section": "colors"
+      },
+      {
+        "name": "The Rationed Red Rule",
+        "body": "Red marks refusal and error only. A destructive button is red; a neutral one never is.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Rule",
+        "body": "Every column of numbers uses tabular figures and is right-aligned, so digits line up by place.",
+        "section": "typography"
+      },
+      {
+        "name": "The Measure Rule",
+        "body": "Prose never runs wider than about 68 characters.",
+        "section": "typography"
+      },
+      {
+        "name": "The Ruled-Not-Raised Rule",
+        "body": "Separate with a rule and group with a border; never lift with a shadow.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep yellow on the rail, the poster panel and hover fills only, with ink text.",
+      "Do carry state as a drawn mark plus a word, and print a legend for any mark.",
+      "Do count every figure from a real response, and show n/a when a request failed.",
+      "Do give every slow request a visible, honest message and every failure a way to retry.",
+      "Do say plainly that it is an assignment project."
+    ],
+    "donts": [
+      "Don't add gradients, glass, blur, glow or shadows.",
+      "Don't use a modal for a task that needs no interruption: adding and editing an asset are pages; deleting asks inline.",
+      "Don't build cards of icon, heading and text, or a row of big-number tiles.",
+      "Don't invent users, metrics or accuracy figures, and never mention an admin login.",
+      "Don't colour a status by hue alone."
+    ]
+  }
+}

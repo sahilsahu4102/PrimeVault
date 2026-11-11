@@ -60,6 +60,15 @@ export const AuthProvider = ({ children }) => {
     return userData;
   }, []);
 
+  const guest = useCallback(async () => {
+    const res = await authAPI.guest();
+    const { user: userData, accessToken } = res.data.data;
+    localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
+    return userData;
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await authAPI.logout();
@@ -74,6 +83,8 @@ export const AuthProvider = ({ children }) => {
 
   const isAdmin = user?.role === 'ADMIN';
   const isAuthenticated = !!user;
+  // The server makes guest accounts on a reserved address that no real account can use (see auth.service.js).
+  const isGuest = !!user?.email?.endsWith('@guest.invalid');
 
   return (
     <AuthContext.Provider
@@ -82,8 +93,10 @@ export const AuthProvider = ({ children }) => {
         loading,
         isAuthenticated,
         isAdmin,
+        isGuest,
         register,
         login,
+        guest,
         logout,
       }}
     >
